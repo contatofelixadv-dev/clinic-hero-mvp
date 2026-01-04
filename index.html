@@ -2,69 +2,47 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Clinic Hero | v2.3 Blindado</title>
+    <title>Clinic Hero | v2.4 Corrigido</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        .pep-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 20px; }
-        .input-ped { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 10px; }
-        /* Garante que o App comece invisível */
-        #app-area { display: none; } 
+        .pep-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 10px; }
+        .input-ped { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; margin-bottom: 12px; outline: none; }
+        .input-ped:focus { border-color: #2563eb; background: #eff6ff; }
+        .btn-menu { width: 100%; text-align: left; padding: 12px; border-radius: 12px; margin-bottom: 8px; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+        .btn-menu:hover { background-color: #f1f5f9; }
+        .btn-active { background-color: #eff6ff; color: #2563eb; }
     </style>
-
-    <script>
-        function forcarEntrada(perfil) {
-            // 1. Some com o Login
-            document.getElementById('login-area').style.display = 'none';
-            // 2. Mostra o App
-            document.getElementById('app-area').style.display = 'flex';
-            
-            // 3. Configura a tela
-            document.getElementById('user-badge').innerText = perfil === 'medico' ? 'DOUTOR' : 'SECRETARIA';
-            
-            // 4. Carrega o menu certo
-            if(perfil === 'medico') {
-                carregarMenuMedico();
-                carregarTelaMedico(); // Tenta carregar dados, se falhar, mostra vazio
-            } else {
-                carregarMenuSecretaria();
-                carregarTelaCadastro();
-            }
-            
-            // Tenta carregar ícones se a biblioteca tiver baixado
-            try { lucide.createIcons(); } catch(e) {}
-        }
-    </script>
 </head>
-<body class="bg-slate-50 h-screen font-sans text-slate-900">
+<body class="bg-[#F8FAFC] h-screen font-sans text-slate-900 overflow-hidden">
 
     <div id="login-area" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
-        <div class="bg-white p-10 rounded-3xl w-96 text-center">
-            <div class="text-4xl mb-6">🏥</div>
-            <h1 class="text-2xl font-bold mb-8">Clinic Hero v2.3</h1>
+        <div class="bg-white p-10 rounded-[40px] w-96 text-center shadow-2xl">
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-2xl mx-auto mb-6 shadow-lg">CH</div>
+            <h1 class="text-2xl font-black mb-8 text-slate-800">Clinic Hero v2.4</h1>
             
-            <button onclick="forcarEntrada('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold mb-4 hover:bg-slate-700 cursor-pointer">
+            <button onclick="entrar('medico')" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-bold mb-4 hover:bg-slate-700 shadow-xl transition active:scale-95">
                 ACESSO MÉDICO
             </button>
             
-            <button onclick="forcarEntrada('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 cursor-pointer">
+            <button onclick="entrar('secretaria')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-200 transition active:scale-95">
                 ACESSO SECRETARIA
             </button>
-            
-            <p class="mt-4 text-xs text-slate-400">Clique para entrar (Modo Seguro)</p>
         </div>
     </div>
 
-    <div id="app-area" class="fixed inset-0 flex flex-col h-full hidden">
-        <header class="h-16 bg-white border-b px-6 flex items-center justify-between shadow-sm shrink-0">
-            <div class="font-bold text-blue-600 flex items-center gap-2">CLINIC HERO <span id="user-badge" class="bg-blue-100 px-2 py-1 rounded text-xs">ONLINE</span></div>
-            <button onclick="location.reload()" class="text-xs text-red-500 font-bold border px-3 py-1 rounded-full hover:bg-red-50">SAIR</button>
+    <div id="app-area" class="hidden fixed inset-0 flex-col h-full bg-[#F8FAFC]">
+        <header class="h-16 bg-white border-b px-8 flex items-center justify-between shadow-sm shrink-0 z-20">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-1.5 rounded-lg font-black">CH</div>
+                <div class="font-bold text-slate-700 uppercase text-sm">Clinic Hero | <span id="user-badge" class="text-blue-500">...</span></div>
+            </div>
+            <button onclick="location.reload()" class="text-xs text-red-500 font-bold border border-red-100 px-4 py-2 rounded-full hover:bg-red-50 transition">SAIR</button>
         </header>
 
         <div class="flex flex-1 overflow-hidden">
-            <aside id="sidebar" class="w-64 bg-white border-r p-4 flex flex-col gap-2 shrink-0">
+            <aside id="sidebar" class="w-64 bg-white border-r p-6 flex flex-col shrink-0 z-10">
                 </aside>
             <main id="content" class="flex-1 p-8 overflow-y-auto">
                 </main>
@@ -72,140 +50,181 @@
     </div>
 
     <script>
-        // -- MENUS --
-        function carregarMenuMedico() {
-            document.getElementById('sidebar').innerHTML = `
-                <button onclick="carregarTelaMedico()" class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold mb-2">Fila de Atendimento</button>
-                <button class="w-full text-left p-3 rounded-xl text-slate-400">Agenda</button>
-            `;
-        }
-        function carregarMenuSecretaria() {
-            document.getElementById('sidebar').innerHTML = `
-                <button onclick="carregarTelaCadastro()" class="w-full text-left p-3 rounded-xl bg-blue-600 text-white font-bold mb-2">Novo Cadastro</button>
-                <button onclick="carregarTelaLista()" class="w-full text-left p-3 rounded-xl hover:bg-slate-100 text-slate-500">Ver Pacientes</button>
-            `;
-        }
-
-        // -- TELAS --
-        function carregarTelaCadastro() {
-            document.getElementById('content').innerHTML = `
-                <div class="max-w-md mx-auto bg-white p-8 rounded-2xl border shadow-sm">
-                    <h2 class="text-xl font-bold mb-6">Novo Paciente</h2>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">NOME COMPLETO</label>
-                    <input id="nome" type="text" class="input-ped">
-                    
-                    <label class="block text-xs font-bold text-slate-400 mb-1">DATA NASCIMENTO</label>
-                    <input id="nasc" type="date" class="input-ped">
-                    
-                    <button onclick="salvar()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold mt-4">SALVAR NO BANCO</button>
-                </div>
-            `;
-        }
-
-        // -- BANCO DE DADOS (SUPABASE) --
+        // --- 1. CONFIGURAÇÃO SUPABASE ---
         const SB_URL = "https://ptcntqkmeypufwjrknyt.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
         
-        // Conexão segura
         let supabase = null;
         try {
             if(window.supabase) supabase = window.supabase.createClient(SB_URL, SB_KEY);
-        } catch(e) { console.error("Erro Supabase:", e); }
+        } catch(e) { console.error("Erro biblioteca:", e); }
 
-        async function salvar() {
-            if(!supabase) return alert("Erro: Banco de dados desconectado (Verifique sua internet)");
-            
-            const nome = document.getElementById('nome').value;
-            const nasc = document.getElementById('nasc').value;
-            
-            if(!nome) return alert("Digite o nome!");
+        // --- 2. NAVEGAÇÃO ---
+        function entrar(perfil) {
+            // Troca visual
+            document.getElementById('login-area').style.display = 'none';
+            document.getElementById('app-area').style.display = 'flex';
+            document.getElementById('user-badge').innerText = perfil.toUpperCase();
 
-            const { error } = await supabase.from('pacientes').insert([{ nome, data_nascimento: nasc }]);
-            
-            if(error) alert("Erro ao salvar: " + error.message);
-            else { alert("Paciente cadastrado!"); carregarTelaCadastro(); }
+            // Injeta o Menu
+            const side = document.getElementById('sidebar');
+            if(perfil === 'medico') {
+                side.innerHTML = `
+                    <button onclick="telaFila()" class="btn-menu btn-active"><i data-lucide="list"></i> Fila de Espera</button>
+                    <button class="btn-menu text-slate-400"><i data-lucide="calendar"></i> Agenda</button>
+                `;
+                telaFila(); // Carrega a tela inicial do médico
+            } else {
+                side.innerHTML = `
+                    <button onclick="telaCadastro()" class="btn-menu btn-active"><i data-lucide="plus-circle"></i> Novo Cadastro</button>
+                    <button onclick="telaLista()" class="btn-menu text-slate-500"><i data-lucide="users"></i> Ver Pacientes</button>
+                `;
+                telaCadastro(); // Carrega a tela inicial da secretaria
+            }
+            safeIcons();
         }
 
-        async function carregarTelaLista() {
+        // --- 3. TELAS ---
+        function telaCadastro() {
+            document.getElementById('content').innerHTML = `
+                <div class="max-w-md mx-auto bg-white p-10 rounded-[30px] border border-slate-100 shadow-sm fade-in">
+                    <h2 class="text-2xl font-black mb-6 text-slate-800">Novo Paciente</h2>
+                    
+                    <label class="text-xs font-bold text-slate-400 ml-1">NOME COMPLETO</label>
+                    <input id="nome" type="text" class="input-ped" placeholder="Ex: Gabriel Félix">
+                    
+                    <label class="text-xs font-bold text-slate-400 ml-1">DATA DE NASCIMENTO</label>
+                    <input id="nasc" type="date" class="input-ped">
+                    
+                    <button onclick="salvarPaciente()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold mt-4 hover:bg-blue-700 transition shadow-lg shadow-blue-200">SALVAR NO BANCO</button>
+                </div>
+            `;
+            safeIcons();
+        }
+
+        async function telaLista() {
             const main = document.getElementById('content');
-            main.innerHTML = "Carregando lista...";
+            main.innerHTML = `<p class="animate-pulse text-blue-600 font-bold">Carregando lista...</p>`;
             
-            if(!supabase) return main.innerHTML = "Sem conexão com banco.";
+            if(!supabase) return main.innerHTML = "Erro: Banco desconectado.";
 
             const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', {ascending: false});
             
-            main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Lista de Pacientes</h2>` + 
-                data.map(p => `<div class="p-3 bg-white border rounded-xl mb-2 font-bold">${p.nome}</div>`).join('');
+            if(error) return main.innerHTML = "Erro: " + error.message;
+
+            main.innerHTML = `<h2 class="text-2xl font-black mb-6">Todos os Pacientes</h2>` + 
+                data.map(p => `
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 mb-3 font-bold text-slate-700 shadow-sm flex justify-between">
+                        <span>${p.nome}</span>
+                        <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">${p.data_nascimento || 'S/D'}</span>
+                    </div>
+                `).join('');
         }
 
-        async function carregarTelaMedico() {
+        async function telaFila() {
             const main = document.getElementById('content');
-            main.innerHTML = "Buscando pacientes...";
+            main.innerHTML = `<p class="animate-pulse text-blue-600 font-bold">Buscando fila...</p>`;
             
-            if(!supabase) return main.innerHTML = "Sem conexão com banco.";
+            if(!supabase) return main.innerHTML = "Erro: Banco desconectado.";
 
-            const { data } = await supabase.from('pacientes').select('*').order('criado_em', {ascending: false});
-            
+            const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', {ascending: false});
+
             main.innerHTML = `
-                <h2 class="text-2xl font-bold mb-6">Fila Pediátrica</h2>
-                <div class="grid gap-4">
-                    ${data.map(p => `
-                        <div onclick="abrirProntuario('${p.id}', '${p.nome}', '${p.data_nascimento}')" class="bg-white p-4 rounded-xl border hover:border-blue-500 cursor-pointer flex justify-between items-center shadow-sm">
-                            <div>
-                                <div class="font-bold text-lg">${p.nome}</div>
-                                <div class="text-xs text-slate-400 font-bold uppercase">Nasc: ${p.data_nascimento || '--'}</div>
+                <div class="fade-in">
+                    <h2 class="text-3xl font-black mb-8 text-slate-800">Fila Pediátrica</h2>
+                    <div class="grid gap-4">
+                        ${data.map(p => `
+                            <div onclick="abrirProntuario('${p.id}', '${p.nome}', '${p.data_nascimento}')" class="bg-white p-6 rounded-[24px] border border-slate-100 hover:border-blue-500 transition cursor-pointer flex justify-between items-center group shadow-sm">
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-800">${p.nome}</h4>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Nasc: ${p.data_nascimento || '---'}</p>
+                                </div>
+                                <span class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-xs font-black group-hover:bg-blue-600 group-hover:text-white transition">ATENDER →</span>
                             </div>
-                            <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold">ATENDER</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+                        `).join('')}
+                    </div>
+                </div>`;
+            safeIcons();
         }
 
         function abrirProntuario(id, nome, nascimento) {
-            // Lógica de idade
-            const d1 = new Date(nascimento);
-            const d2 = new Date();
-            let meses = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
-            if(d2.getDate() < d1.getDate()) meses--;
-            if(isNaN(meses)) meses = 0;
+            // Lógica de Idade
+            let idadeLabel = "Idade não informada";
+            let meses = 0;
+            if(nascimento) {
+                const d1 = new Date(nascimento);
+                const d2 = new Date();
+                meses = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+                if(d2.getDate() < d1.getDate()) meses--;
+                idadeLabel = `${meses} MESES`;
+            }
 
             document.getElementById('content').innerHTML = `
-                <div class="max-w-4xl mx-auto">
-                    <div class="flex justify-between items-end mb-6">
+                <div class="max-w-5xl mx-auto fade-in">
+                    <div class="flex justify-between items-end mb-8">
                         <div>
-                            <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-bold">IDADE: ${meses} MESES</span>
-                            <h2 class="text-3xl font-bold mt-1">${nome}</h2>
+                            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">${idadeLabel}</span>
+                            <h2 class="text-4xl font-black text-slate-800 mt-2">${nome}</h2>
                         </div>
-                        <button onclick="carregarTelaMedico()" class="text-slate-400 font-bold">Voltar</button>
+                        <button onclick="telaFila()" class="text-slate-400 font-bold hover:text-blue-600">Voltar</button>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-4 mb-6">
-                        <div><label class="text-xs font-bold text-slate-400">PESO (KG)</label><input id="p_peso" type="number" class="input-ped"></div>
-                        <div><label class="text-xs font-bold text-slate-400">ALTURA (CM)</label><input id="p_alt" type="number" class="input-ped"></div>
-                        <div><label class="text-xs font-bold text-slate-400">P. CEFÁLICO</label><input id="p_pc" type="number" class="input-ped"></div>
+                    <div class="grid grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <label class="text-[10px] font-black text-slate-400 uppercase">PESO (KG)</label>
+                            <input id="peso" type="number" step="0.001" class="w-full text-center text-xl font-bold text-blue-600 outline-none mt-2" placeholder="0.000">
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <label class="text-[10px] font-black text-slate-400 uppercase">ALTURA (CM)</label>
+                            <input id="altura" type="number" class="w-full text-center text-xl font-bold text-blue-600 outline-none mt-2" placeholder="00">
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <label class="text-[10px] font-black text-slate-400 uppercase">P. CEFÁLICO</label>
+                            <input id="pc" type="number" class="w-full text-center text-xl font-bold text-blue-600 outline-none mt-2" placeholder="00">
+                        </div>
                     </div>
 
-                    <label class="text-xs font-bold text-slate-400">EVOLUÇÃO CLÍNICA</label>
-                    <textarea id="p_evo" class="w-full h-40 border rounded-xl p-4 mb-4 outline-none" placeholder="Escreva aqui..."></textarea>
-                    
-                    <button onclick="finalizar('${id}', '${meses} meses')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700">SALVAR CONSULTA</button>
+                    <div class="bg-white p-6 rounded-[30px] border shadow-sm mb-6">
+                        <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">Evolução Clínica</h4>
+                        <textarea id="evolucao" class="w-full h-64 bg-slate-50 rounded-2xl p-4 outline-none text-slate-600 border-none resize-none" placeholder="Digite a evolução..."></textarea>
+                    </div>
+
+                    <button onclick="finalizar('${id}', '${idadeLabel}')" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black hover:bg-slate-800 transition shadow-xl">FINALIZAR CONSULTA</button>
                 </div>
             `;
+            safeIcons();
+        }
+
+        // --- 4. AÇÕES ---
+        async function salvarPaciente() {
+            const nome = document.getElementById('nome').value;
+            const nasc = document.getElementById('nasc').value;
+            
+            if(!supabase) return alert("Erro de conexão");
+            if(!nome) return alert("Preencha o nome");
+
+            const { error } = await supabase.from('pacientes').insert([{ nome, data_nascimento: nasc }]);
+            
+            if(error) alert("Erro: " + error.message);
+            else { alert("Salvo!"); telaCadastro(); }
         }
 
         async function finalizar(pid, idade) {
-            const peso = document.getElementById('p_peso').value;
-            const altura = document.getElementById('p_alt').value;
-            const pc = document.getElementById('p_pc').value;
-            const evo = document.getElementById('p_evo').value;
+            const peso = document.getElementById('peso').value;
+            const altura = document.getElementById('altura').value;
+            const pc = document.getElementById('pc').value;
+            const evo = document.getElementById('evolucao').value;
 
             const { error } = await supabase.from('consultas').insert([{
                 paciente_id: pid, peso, altura, perimetro_cefalico: pc, evolucao: evo, idade_na_consulta: idade
             }]);
 
-            if(error) alert(error.message);
-            else { alert("Consulta Salva!"); carregarTelaMedico(); }
+            if(error) alert("Erro: " + error.message);
+            else { alert("Consulta salva!"); telaFila(); }
+        }
+
+        function safeIcons() {
+            try { lucide.createIcons(); } catch(e) {}
         }
     </script>
 </body>
