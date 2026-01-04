@@ -3,278 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero | Gestão 360°</title>
+    <title>Clinic Hero | Full-Service v0.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .fade-in { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        .sidebar-item-active { background-color: #f1f5f9; color: #2563eb; border-right: 4px solid #2563eb; font-weight: 700; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sidebar-active { background: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden">
+<body class="bg-slate-50 h-screen overflow-hidden flex flex-col font-sans">
 
-    <div id="screen-login" class="flex items-center justify-center h-full bg-slate-900 absolute w-full z-50 transition-all duration-500">
-        <div class="bg-white p-10 rounded-3xl shadow-2xl w-[400px] text-center fade-in">
-            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 shadow-xl shadow-blue-500/20">CH</div>
-            <h1 class="text-3xl font-bold mb-2 text-slate-800 tracking-tight">Clinic Hero</h1>
-            <p class="text-slate-400 mb-10 text-sm">Selecione seu portal de acesso</p>
-            
-            <div class="space-y-4">
-                <button onclick="iniciarApp('medico')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-4 transition-all active:scale-95">
-                    <i data-lucide="stethoscope" class="w-6 h-6 text-blue-400"></i> Portal Médico
-                </button>
-                <button onclick="iniciarApp('secretaria')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-4 transition-all shadow-lg shadow-blue-500/30 active:scale-95">
-                    <i data-lucide="layout-dashboard" class="w-6 h-6"></i> Portal Recepção
-                </button>
-            </div>
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl w-96 text-center">
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">CH</div>
+            <h1 class="text-2xl font-bold mb-8">Acesso Clinic Hero</h1>
+            <button onclick="logar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold mb-4 flex items-center justify-center gap-2">
+                <i data-lucide="stethoscope"></i> Portal Médico
+            </button>
+            <button onclick="logar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                <i data-lucide="users"></i> Portal Recepção
+            </button>
         </div>
     </div>
 
-    <div id="screen-system" class="hidden h-full flex flex-col">
-        
-        <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-30">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 text-white p-1.5 rounded-lg font-bold text-xs">CH</div>
-                <div class="h-8 w-px bg-slate-200"></div>
-                <span id="modulo-title" class="font-bold text-slate-600 text-sm uppercase tracking-widest">Iniciando...</span>
-            </div>
-
-            <div class="flex items-center gap-6">
-                <div id="gamificacao-stats" class="hidden flex items-center gap-4">
-                    <div class="text-right">
-                        <p class="text-[10px] font-bold text-blue-600 uppercase">Nível 7 • Sênior</p>
-                        <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-0.5 overflow-hidden">
-                            <div class="bg-blue-600 h-full w-3/4"></div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                        <i data-lucide="coins" class="text-amber-500 w-4 h-4 fill-amber-500"></i>
-                        <span class="font-bold text-amber-700 text-sm">450</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3 pl-6 border-l">
-                    <div class="text-right">
-                        <p id="user-display-name" class="text-sm font-bold text-slate-800 leading-none">Usuário</p>
-                        <span class="text-[10px] text-slate-400 font-medium">Clínica Matriz</span>
-                    </div>
-                    <img id="user-display-avatar" src="" class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200">
-                </div>
-            </div>
-        </header>
-
-        <div class="flex flex-1 overflow-hidden">
-            <aside class="w-64 bg-white border-r flex flex-col z-20 overflow-y-auto">
-                <nav id="sidebar-nav" class="flex-1 py-6 px-4 space-y-1">
-                    </nav>
-                <div class="p-4 border-t">
-                    <button onclick="location.reload()" class="flex items-center gap-3 p-3 w-full text-slate-400 hover:text-red-500 transition text-sm font-medium">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> Sair do Sistema
-                    </button>
-                </div>
-            </aside>
-
-            <main id="view-container" class="flex-1 p-8 overflow-y-auto bg-slate-50/50">
-                </main>
+    <header class="h-16 bg-white border-b flex items-center justify-between px-6">
+        <div class="flex items-center gap-4 font-bold text-blue-600">
+            <span class="bg-blue-600 text-white p-1 rounded">CH</span> CLINIC HERO
         </div>
+        <div id="user-info" class="flex items-center gap-3">
+            <span id="user-name" class="text-sm font-bold text-slate-700"></span>
+            <div class="w-8 h-8 bg-slate-200 rounded-full"></div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 bg-white border-r p-4 space-y-2">
+            <nav id="menu-nav"></nav>
+        </aside>
+
+        <main id="main-content" class="flex-1 p-8 overflow-y-auto">
+            </main>
     </div>
 
     <script>
-        let currentRole = '';
-        
-        const config = {
-            medico: {
-                title: "Módulo Clínico",
-                name: "Dr. Ricardo Lopes",
-                avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Doctor",
-                menu: [
-                    { id: 'm-home', label: 'Início', icon: 'home' },
-                    { id: 'm-atendimento', label: 'Atendimento (PEP)', icon: 'activity' },
-                    { id: 'm-agenda', label: 'Minha Agenda', icon: 'calendar' },
-                    { id: 'm-pacientes', label: 'Prontuários', icon: 'folder-heart' },
-                    { id: 'm-financeiro', label: 'Repasses', icon: 'pie-chart' }
-                ]
-            },
-            secretaria: {
-                title: "Módulo Recepção",
-                name: "Julia Silva",
-                avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-                menu: [
-                    { id: 's-cockpit', label: 'Cockpit (Game)', icon: 'layout-dashboard' },
-                    { id: 's-agenda', label: 'Agenda Geral', icon: 'calendar' },
-                    { id: 's-espera', label: 'Radar de Espera', icon: 'radar' },
-                    { id: 's-pacientes', label: 'Pacientes', icon: 'users' },
-                    { id: 's-financeiro', label: 'Caixa do Dia', icon: 'dollar-sign' },
-                    { id: 's-loja', label: 'Loja de Prêmios', icon: 'shopping-bag' }
-                ]
+        let userRole = '';
+
+        function logar(role) {
+            userRole = role;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('user-name').innerText = role === 'medico' ? 'Dr. Pediatra' : 'Recepção';
+            renderMenu();
+            renderHome();
+        }
+
+        function renderMenu() {
+            const nav = document.getElementById('menu-nav');
+            if(userRole === 'medico') {
+                nav.innerHTML = `
+                    <button onclick="renderHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="home"></i> Início</button>
+                    <button onclick="renderPEP()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="baby"></i> Prontuário Pediatria</button>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <button onclick="renderHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="layout-dashboard"></i> Cockpit</button>
+                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Cadastro</button>
+                `;
             }
-        };
-
-        function iniciarApp(role) {
-            currentRole = role;
-            document.getElementById('screen-login').style.display = 'none';
-            document.getElementById('screen-system').classList.remove('hidden');
-            
-            const user = config[role];
-            document.getElementById('modulo-title').innerText = user.title;
-            document.getElementById('user-display-name').innerText = user.name;
-            document.getElementById('user-display-avatar').src = user.avatar;
-
-            if(role === 'secretaria') document.getElementById('gamificacao-stats').classList.remove('hidden');
-
-            renderSidebar(user.menu);
-            // Inicia na primeira aba
-            navegar(user.menu[0].id);
-        }
-
-        function renderSidebar(menu) {
-            const nav = document.getElementById('sidebar-nav');
-            nav.innerHTML = menu.map(item => `
-                <button id="btn-${item.id}" onclick="navegar('${item.id}')" class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-slate-500 hover:bg-slate-50 text-sm font-medium">
-                    <i data-lucide="${item.icon}" class="w-5 h-5"></i> ${item.label}
-                </button>
-            `).join('');
             lucide.createIcons();
         }
 
-        function navegar(id) {
-            // Update UI Sidebar
-            document.querySelectorAll('#sidebar-nav button').forEach(b => b.classList.remove('sidebar-item-active'));
-            document.getElementById(`btn-${id}`).classList.add('sidebar-item-active');
-
-            const container = document.getElementById('view-container');
-            container.innerHTML = `<div class="fade-in">${getContent(id)}</div>`;
-            lucide.createIcons();
+        function renderHome() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `<h2 class="text-2xl font-bold">Bem-vindo ao ${userRole === 'medico' ? 'Consultório' : 'Painel Hero'}</h2>`;
         }
 
-        function getContent(id) {
-            const views = {
-                // VIEWS DO MÉDICO
-                'm-home': `
-                    <h2 class="text-2xl font-bold mb-6">Olá, Dr. Ricardo</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                            <h3 class="text-slate-400 text-xs font-bold uppercase mb-4 tracking-widest">Próximo Paciente</h3>
-                            <p class="text-xl font-bold">Maria Silva</p>
-                            <p class="text-sm text-slate-500">Consulta de Rotina - 14:00</p>
-                            <button onclick="navegar('m-atendimento')" class="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-bold">Chamar Agora</button>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                            <h3 class="text-slate-400 text-xs font-bold uppercase mb-4 tracking-widest">Consultas Hoje</h3>
-                            <p class="text-3xl font-bold">12</p>
-                            <p class="text-sm text-slate-500">4 finalizadas / 8 pendentes</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                            <h3 class="text-slate-400 text-xs font-bold uppercase mb-4 tracking-widest">Faturamento Previsto</h3>
-                            <p class="text-xl font-bold text-green-600">R$ 2.450,00</p>
-                            <p class="text-sm text-slate-500">Baseado na agenda do dia</p>
-                        </div>
-                    </div>
-                `,
-                'm-atendimento': `
+        // PRONTUÁRIO PERSONALIZADO: PEDIATRIA
+        function renderPEP() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="fade-in max-w-4xl mx-auto">
                     <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold">Atendimento Clínico</h2>
-                        <div class="flex gap-2"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Paciente: Maria Silva</span></div>
+                        <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="baby" class="text-pink-500"></i> Atendimento Pediátrico</h2>
+                        <span class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">ID: #4920</span>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 space-y-4">
-                            <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Anamnese / Evolução</label>
-                                <textarea class="w-full h-64 p-4 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="Histórico, queixa principal..."></textarea>
-                            </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-xl border">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Paciente</label>
+                            <input type="text" class="w-full font-bold text-lg outline-none" value="Enzo Gabriel Ferreira">
                         </div>
-                        <div class="space-y-4">
-                            <div class="bg-white p-6 rounded-2xl border shadow-sm">
-                                <h4 class="font-bold text-sm mb-4">Ações Clínicas</h4>
-                                <button class="w-full text-left p-3 border rounded-xl mb-2 hover:bg-slate-50 flex items-center gap-3"><i data-lucide="pill" class="w-4 h-4"></i> Prescrição Digital</button>
-                                <button class="w-full text-left p-3 border rounded-xl mb-2 hover:bg-slate-50 flex items-center gap-3"><i data-lucide="file-text" class="w-4 h-4"></i> Atestados</button>
-                                <button class="w-full text-left p-3 border rounded-xl mb-2 hover:bg-slate-50 flex items-center gap-3"><i data-lucide="flask-conical" class="w-4 h-4"></i> Pedido de Exames</button>
-                            </div>
-                            <button class="w-full bg-green-500 text-white font-bold py-4 rounded-2xl shadow-lg">Finalizar Atendimento</button>
+                        <div class="bg-white p-4 rounded-xl border">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Responsável (Mãe/Pai)</label>
+                            <input type="text" class="w-full font-bold outline-none" value="Mariana Ferreira">
                         </div>
                     </div>
-                `,
-                'm-agenda': `<h2 class="text-2xl font-bold">Minha Agenda</h2><div class="mt-6 p-20 border-2 border-dashed rounded-3xl text-center text-slate-400">Calendário de Consultas (Mês)</div>`,
-                
-                // VIEWS DA SECRETÁRIA
-                's-cockpit': `
-                    <h2 class="text-2xl font-bold mb-6 tracking-tight">Painel de Missões (Gamificação)</h2>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 space-y-4">
-                            <div class="bg-white p-5 rounded-2xl border flex items-center gap-4 hover:border-blue-500 transition cursor-pointer">
-                                <div class="bg-blue-100 text-blue-600 p-3 rounded-xl"><i data-lucide="check-circle"></i></div>
-                                <div class="flex-1"><h4 class="font-bold">Confirmar Agenda de Amanhã</h4><div class="w-full h-2 bg-slate-100 rounded-full mt-2"><div class="bg-blue-600 h-full w-[80%]"></div></div></div>
-                                <div class="text-right"><span class="text-xs font-bold text-slate-400 uppercase block">Ganhos</span><span class="font-bold text-blue-600">+100 XP</span></div>
-                            </div>
-                            <div class="bg-white p-5 rounded-2xl border flex items-center gap-4 hover:border-blue-500 transition cursor-pointer">
-                                <div class="bg-blue-600 text-white p-3 rounded-xl"><i data-lucide="zap"></i></div>
-                                <div class="flex-1"><h4 class="font-bold">Resolver Fila de Espera (Vaga 14h)</h4><p class="text-xs text-slate-500">O robô está aguardando sua autorização</p></div>
-                                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md shadow-blue-500/20">Ativar Radar</button>
-                            </div>
+
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Peso (kg)</span>
+                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="12.500">
                         </div>
-                        <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-xl">
-                            <h3 class="font-bold opacity-80 text-xs uppercase mb-4">Seu Progresso</h3>
-                            <div class="text-5xl font-bold mb-4">Level 7</div>
-                            <p class="text-sm opacity-80">Você está a 150 XP de se tornar uma "Mestra da Gestão".</p>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Altura (cm)</span>
+                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="85">
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Perímetro Cef.</span>
+                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="48 cm">
                         </div>
                     </div>
-                `,
-                's-espera': `
-                    <h2 class="text-2xl font-bold mb-6">Radar de Espera Automático</h2>
-                    <div class="bg-white p-8 rounded-3xl border border-blue-100 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4"><span class="flex items-center gap-2 text-green-500 text-xs font-bold animate-pulse"><i data-lucide="radar"></i> Robô Ativo</span></div>
-                        <h3 class="font-bold text-xl mb-4">Vaga das 14:00 (Hoje)</h3>
-                        <div class="flex gap-4">
-                            <div class="flex-1 bg-slate-50 p-4 rounded-2xl border border-blue-200">
-                                <p class="text-xs font-bold text-blue-600 uppercase mb-1">Candidato Atual</p>
-                                <p class="font-bold text-lg">Maria Helena de Souza</p>
-                                <p class="text-sm text-slate-500">Aguardando resposta via WhatsApp... (04:12)</p>
-                            </div>
-                            <div class="flex-1 bg-slate-50 p-4 rounded-2xl opacity-50 border">
-                                <p class="text-xs font-bold text-slate-400 uppercase mb-1">Próximo da Fila</p>
-                                <p class="font-bold text-lg">Ricardo J. Almeida</p>
-                                <p class="text-sm text-slate-500">Será notificado em caso de recusa.</p>
-                            </div>
-                        </div>
+
+                    <div class="bg-white p-6 rounded-2xl border mb-6 shadow-sm">
+                        <h3 class="font-bold text-sm text-slate-700 mb-4 border-b pb-2">Evolução do Desenvolvimento</h3>
+                        <textarea class="w-full h-40 outline-none resize-none text-slate-600 leading-relaxed" placeholder="Descreva o estado da criança, vacinação, alimentação..."></textarea>
                     </div>
-                `,
-                's-financeiro': `
-                    <h2 class="text-2xl font-bold mb-6">Controle de Caixa</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-white p-4 rounded-xl border text-center">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Entradas (Hoje)</p>
-                            <p class="text-xl font-bold text-green-600">R$ 1.250,00</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl border text-center">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Dinheiro</p>
-                            <p class="text-xl font-bold text-slate-700">R$ 450,00</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl border text-center">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Cartão/Pix</p>
-                            <p class="text-xl font-bold text-slate-700">R$ 800,00</p>
-                        </div>
-                        <button class="bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition">+ Novo Lançamento</button>
+
+                    <div class="flex gap-4">
+                        <button class="flex-1 bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                            <i data-lucide="pill"></i> Prescrever Receita
+                        </button>
+                        <button class="flex-1 bg-green-500 text-white py-4 rounded-xl font-bold">Finalizar e Salvar</button>
                     </div>
-                `,
-                's-agenda': `<h2 class="text-2xl font-bold">Agenda Geral da Clínica</h2><div class="mt-6 bg-white p-20 border rounded-3xl text-center text-slate-400">Visualização de Agenda (Médicos: Pedro, Ana, Ricardo)</div>`,
-                's-pacientes': `<h2 class="text-2xl font-bold">Cadastro de Pacientes</h2><div class="mt-6 bg-white p-20 border rounded-3xl text-center text-slate-400">Tabela de Pacientes com Busca Rápida</div>`,
-                's-loja': `
-                    <h2 class="text-2xl font-bold mb-6">Loja de Recompensas</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-2xl border text-center group cursor-pointer hover:border-blue-500 transition">
-                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition"><i data-lucide="pizza"></i></div>
-                            <h4 class="font-bold">Vale iFood R$ 30</h4>
-                            <p class="text-sm text-slate-400 mb-4">Resgate com 500 moedas</p>
-                            <div class="bg-slate-100 h-2 rounded-full"><div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div></div>
-                        </div>
-                    </div>
-                `
-            };
-            return views[id] || '<h2 class="text-2xl font-bold">Em construção...</h2>';
+                </div>
+            `;
+            lucide.createIcons();
         }
+
+        lucide.createIcons();
     </script>
 </body>
 </html>
