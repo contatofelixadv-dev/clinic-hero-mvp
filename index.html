@@ -2,34 +2,28 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero | Diagnóstico Direto v1.3</title>
+    <title>Clinic Hero | Reset v1.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-900 h-screen flex items-center justify-center font-sans overflow-hidden">
+<body class="bg-slate-900 h-screen flex items-center justify-center font-sans">
 
-    <div id="status-card" class="bg-white p-10 rounded-3xl shadow-2xl w-[400px] text-center fade-in">
-        <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">CH</div>
-        <h1 id="status-h1" class="text-xl font-bold mb-4 text-slate-800">Conectando...</h1>
+    <div id="setup-card" class="bg-white p-10 rounded-3xl shadow-2xl w-96 text-center">
+        <h1 id="msg" class="text-xl font-bold mb-6 text-slate-800">Conectando...</h1>
         
-        <div id="loader" class="flex justify-center mb-6">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+        <div id="loader" class="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-6"></div>
 
-        <div id="error-msg" class="hidden text-sm text-red-500 bg-red-50 p-3 rounded-lg mb-4 border border-red-100"></div>
-
-        <div id="app-btns" class="hidden space-y-3">
-            <button onclick="entrar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold hover:bg-slate-700 transition">Acesso Médico</button>
-            <button onclick="entrar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition">Acesso Recepção</button>
+        <div id="btns" class="hidden space-y-3">
+            <button onclick="entrar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold">Portal Médico</button>
+            <button onclick="entrar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Portal Recepção</button>
         </div>
+        
+        <button id="btn-force" onclick="forcar()" class="hidden mt-4 text-xs text-slate-400 underline">Forçar entrada sem banco</button>
     </div>
 
     <div id="app" class="hidden fixed inset-0 bg-slate-50 flex flex-col">
-        <header class="h-14 bg-white border-b px-6 flex items-center justify-between shadow-sm">
-            <div class="font-bold text-blue-600 flex items-center gap-2">CLINIC HERO <span id="tag" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-400">ONLINE</span></div>
-            <button onclick="location.reload()" class="text-xs text-slate-400 hover:text-red-500 font-bold">SAIR</button>
+        <header class="h-14 bg-white border-b px-6 flex items-center justify-between shadow-sm font-bold text-blue-600">
+            CLINIC HERO <button onclick="location.reload()" class="text-xs text-slate-400">SAIR</button>
         </header>
         <div class="flex flex-1 overflow-hidden">
             <aside class="w-64 bg-white border-r p-4" id="nav"></aside>
@@ -42,77 +36,66 @@
         const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
         const supabase = window.supabase.createClient(URL, KEY);
 
-        async function init() {
-            try {
-                // Tenta ler a tabela
-                const { data, error } = await supabase.from('pacientes').select('*').limit(1);
-                
-                if (error) {
-                    document.getElementById('status-h1').innerText = "Erro Detectado";
-                    document.getElementById('error-msg').innerText = "O banco de dados recusou a conexão. Verifique se a tabela 'pacientes' foi criada no SQL Editor.";
-                    document.getElementById('error-msg').classList.remove('hidden');
-                    document.getElementById('loader').classList.add('hidden');
-                } else {
-                    document.getElementById('status-h1').innerText = "Sistema Online";
-                    document.getElementById('loader').classList.add('hidden');
-                    document.getElementById('app-btns').classList.remove('hidden');
+        async function verificar() {
+            // Se em 7 segundos não responder, mostra o botão de forçar
+            setTimeout(() => { 
+                if(document.getElementById('btns').classList.contains('hidden')) {
+                    document.getElementById('btn-force').classList.remove('hidden');
+                    document.getElementById('msg').innerText = "O banco demorou a responder";
                 }
-            } catch (err) {
-                document.getElementById('status-h1').innerText = "Erro Crítico";
-                document.getElementById('error-msg').innerText = err.message;
-                document.getElementById('error-msg').classList.remove('hidden');
+            }, 7000);
+
+            try {
+                const { data, error } = await supabase.from('pacientes').select('*').limit(1);
+                if (!error) {
+                    document.getElementById('msg').innerText = "Sistema Online";
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('btns').classList.remove('hidden');
+                } else {
+                    document.getElementById('msg').innerText = "Erro na Tabela";
+                    console.log(error);
+                }
+            } catch (e) {
+                document.getElementById('msg').innerText = "Erro de Rede";
             }
         }
 
-        window.onload = init;
+        window.onload = verificar;
+
+        function forcar() {
+            document.getElementById('msg').innerText = "Modo Offline (Demo)";
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('btns').classList.remove('hidden');
+        }
 
         function entrar(role) {
-            document.getElementById('status-card').classList.add('hidden');
+            document.getElementById('setup-card').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
-            document.getElementById('tag').innerText = role === 'medico' ? 'MÉDICO' : 'RECEPÇÃO';
-            
             const nav = document.getElementById('nav');
             if(role === 'medico') {
-                nav.innerHTML = `<button onclick="renderMedico()" class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold">Atendimento</button>`;
-                renderMedico();
+                nav.innerHTML = `<button class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold">Atendimento</button>`;
+                document.getElementById('view').innerHTML = `<h2 class="text-2xl font-bold">Área Médica</h2>`;
             } else {
-                nav.innerHTML = `
-                    <button onclick="renderSecretaria()" class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold mb-2">Novo Cadastro</button>
-                    <button onclick="listar()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-slate-500">Listar Pacientes</button>
-                `;
-                renderSecretaria();
+                nav.innerHTML = `<button onclick="renderForm()" class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold">Cadastrar Paciente</button>`;
+                renderForm();
             }
-            lucide.createIcons();
         }
 
-        function renderSecretaria() {
+        function renderForm() {
             document.getElementById('view').innerHTML = `
-                <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-sm border">
-                    <h2 class="text-xl font-bold mb-6">Novo Paciente (Teste Real)</h2>
-                    <input id="n" type="text" placeholder="Nome" class="w-full p-3 border rounded-xl mb-3">
-                    <input id="r" type="text" placeholder="Responsável" class="w-full p-3 border rounded-xl mb-3">
-                    <button onclick="save()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Salvar no Supabase</button>
+                <div class="max-w-md bg-white p-6 rounded-2xl border shadow-sm">
+                    <h2 class="font-bold mb-4">Novo Registro</h2>
+                    <input id="nome" placeholder="Nome" class="w-full p-2 border rounded mb-2">
+                    <button onclick="salvar()" class="w-full bg-blue-600 text-white py-2 rounded font-bold">Salvar</button>
                 </div>
             `;
         }
 
-        async function save() {
-            const nome = document.getElementById('n').value;
-            const resp = document.getElementById('r').value;
-            const { error } = await supabase.from('pacientes').insert([{ nome, nome_responsavel: resp }]);
-            if (error) alert("Erro: " + error.message);
-            else { alert("Salvo!"); listar(); }
-        }
-
-        async function listar() {
-            document.getElementById('view').innerHTML = "Buscando...";
-            const { data } = await supabase.from('pacientes').select('*');
-            document.getElementById('view').innerHTML = `<h2 class="text-xl font-bold mb-4">Banco de Dados:</h2>` + 
-                data.map(p => `<div class="p-3 bg-white border rounded-xl mb-2 font-bold">${p.nome}</div>`).join('');
-        }
-
-        function renderMedico() {
-            document.getElementById('view').innerHTML = `<h2 class="text-2xl font-bold">Área do Médico</h2><p class="text-slate-500">Selecione um paciente para o prontuário.</p>`;
+        async function salvar() {
+            const n = document.getElementById('nome').value;
+            const { error } = await supabase.from('pacientes').insert([{ nome: n }]);
+            if (error) alert("Erro ao salvar no banco. Verifique o SQL Editor.");
+            else alert("Salvo com sucesso!");
         }
     </script>
 </body>
