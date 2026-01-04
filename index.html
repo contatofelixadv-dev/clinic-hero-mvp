@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Clinic Hero | Destravado v2.1</title>
+    <title>Clinic Hero | Blindado v2.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,10 +20,10 @@
             <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 shadow-lg shadow-blue-500/20">CH</div>
             <h1 class="text-2xl font-black mb-10 text-slate-800">Portal Clinic Hero</h1>
             <div class="space-y-4">
-                <button onclick="entrar('medico')" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-bold hover:bg-slate-700 transition active:scale-95 shadow-xl">Acesso Médico</button>
-                <button onclick="entrar('secretaria')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold hover:bg-blue-700 transition active:scale-95 shadow-xl shadow-blue-100">Acesso Secretaria</button>
+                <button type="button" onclick="navegarPara('medico')" class="w-full bg-slate-800 text-white py-5 rounded-2xl font-bold hover:bg-slate-700 transition active:scale-95 shadow-xl cursor-pointer">Acesso Médico</button>
+                <button type="button" onclick="navegarPara('secretaria')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold hover:bg-blue-700 transition active:scale-95 shadow-xl shadow-blue-100 cursor-pointer">Acesso Secretaria</button>
             </div>
-            <p class="mt-8 text-[10px] text-slate-300 font-bold uppercase tracking-widest">Sistema Pronto</p>
+            <p class="mt-8 text-[10px] text-slate-300 font-bold uppercase tracking-widest">v2.2 - Interface Destravada</p>
         </div>
     </div>
 
@@ -39,103 +39,118 @@
         <div class="flex flex-1 overflow-hidden">
             <aside class="w-64 bg-white border-r p-6 flex flex-col gap-2 shrink-0" id="sidebar">
                 </aside>
-
             <main class="flex-1 p-10 overflow-y-auto" id="main-view">
                 </main>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
-        const SB_URL = "https://ptcntqkmeypufwjrknyt.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
+        // --- 1. LÓGICA DE INTERFACE (FUNÇÕES PRIORITÁRIAS) ---
+        // Estas funções não dependem de nada externo para funcionar.
         
-        let supabase = null;
-
-        // Inicializa o banco SEM bloquear a tela
-        try {
-            if(window.supabase) {
-                supabase = window.supabase.createClient(SB_URL, SB_KEY);
-            }
-        } catch(e) { console.error("Erro Supabase", e); }
-
-        // FUNÇÃO DE ENTRADA (NÃO DEPENDE DO BANCO)
-        function entrar(role) {
-            // 1. Some com o login
-            document.getElementById('login-screen').classList.add('hidden');
-            // 2. Mostra o app
-            document.getElementById('app-content').classList.remove('hidden');
-            // 3. Configura a tela
-            document.getElementById('label-perfil').innerText = role === 'medico' ? 'Doutor' : 'Secretaria';
+        function navegarPara(perfil) {
+            console.log("Navegando para:", perfil); // Debug no console
             
-            renderSidebar(role);
+            // Troca visual
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('label-perfil').innerText = perfil === 'medico' ? 'Doutor' : 'Secretaria';
 
-            if(role === 'medico') {
+            // Renderiza Menu
+            renderSidebar(perfil);
+
+            // Carrega conteúdo inicial
+            if(perfil === 'medico') {
                 renderMedicoHome();
             } else {
                 renderSecretariaHome();
             }
-            lucide.createIcons();
+            safeLucide();
         }
 
         function renderSidebar(role) {
             const side = document.getElementById('sidebar');
             if(role === 'medico') {
                 side.innerHTML = `
-                    <button onclick="renderMedicoHome()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-50 text-blue-600 font-bold"><i data-lucide="list"></i> Atendimentos</button>
-                    <button class="flex items-center gap-3 p-4 w-full text-slate-400 font-medium"><i data-lucide="calendar"></i> Agenda</button>
+                    <button onclick="renderMedicoHome()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-50 text-blue-600 font-bold cursor-pointer"><i data-lucide="list"></i> Atendimentos</button>
+                    <button class="flex items-center gap-3 p-4 w-full text-slate-400 font-medium cursor-pointer"><i data-lucide="calendar"></i> Agenda</button>
                 `;
             } else {
                 side.innerHTML = `
-                    <button onclick="renderSecretariaHome()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-600 text-white font-bold mb-2 shadow-lg shadow-blue-100"><i data-lucide="plus-circle"></i> Novo Cadastro</button>
-                    <button onclick="listarPacientesSecretaria()" class="flex items-center gap-3 p-4 w-full text-slate-400 font-medium hover:bg-slate-50 rounded-xl transition"><i data-lucide="users"></i> Pacientes</button>
+                    <button onclick="renderSecretariaHome()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-600 text-white font-bold mb-2 shadow-lg shadow-blue-100 cursor-pointer"><i data-lucide="plus-circle"></i> Novo Cadastro</button>
+                    <button onclick="listarPacientesSecretaria()" class="flex items-center gap-3 p-4 w-full text-slate-400 font-medium hover:bg-slate-50 rounded-xl transition cursor-pointer"><i data-lucide="users"></i> Pacientes</button>
                 `;
             }
         }
 
-        // --- TELAS ---
+        function safeLucide() {
+            if(window.lucide) window.lucide.createIcons();
+        }
 
+        // --- 2. CONFIGURAÇÃO DO BANCO DE DADOS (SUPABASE) ---
+        const SB_URL = "https://ptcntqkmeypufwjrknyt.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
+        
+        let supabase = null;
+        try {
+            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            console.log("Banco conectado.");
+        } catch(e) {
+            console.error("Erro ao iniciar Supabase:", e);
+        }
+
+        // --- 3. FUNÇÕES DE DADOS (ASSÍNCRONAS) ---
+
+        // SECRETARIA
         function renderSecretariaHome() {
             document.getElementById('main-view').innerHTML = `
                 <div class="max-w-md mx-auto bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 mt-10 fade-in">
                     <h2 class="text-2xl font-black mb-8">Novo Paciente</h2>
                     <div class="space-y-4">
                         <input id="f-nome" placeholder="Nome da Criança" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-slate-700">
-                        <label class="block text-xs font-bold text-slate-400 ml-2">DATA DE NASCIMENTO</label>
-                        <input id="f-nasc" type="date" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-slate-500">
-                        <button onclick="salvarPaciente()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-100 mt-4 active:scale-95 transition">CADASTRAR</button>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 ml-2 mb-1">DATA NASCIMENTO</label>
+                            <input id="f-nasc" type="date" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-slate-500">
+                        </div>
+                        <button onclick="salvarPaciente()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-100 mt-4 active:scale-95 transition cursor-pointer">CADASTRAR AGORA</button>
                     </div>
                 </div>`;
-            lucide.createIcons();
+            safeLucide();
         }
 
         async function salvarPaciente() {
             const nome = document.getElementById('f-nome').value;
             const nasc = document.getElementById('f-nasc').value;
-
-            if(!supabase) return alert("Erro: Biblioteca Supabase não carregou.");
-            if(!nome) return alert("Preencha o nome!");
+            
+            if(!supabase) return alert("Erro: O banco de dados não carregou. Recarregue a página.");
+            if(!nome) return alert("Digite o nome da criança.");
 
             const { error } = await supabase.from('pacientes').insert([{ nome, data_nascimento: nasc }]);
-            if (error) alert("Erro Supabase: " + error.message); 
-            else { alert("Paciente salvo com sucesso!"); renderSecretariaHome(); }
+            if (error) alert("Erro Supabase: " + error.message);
+            else { alert("Sucesso! Paciente salvo."); renderSecretariaHome(); }
         }
 
+        async function listarPacientesSecretaria() {
+            const main = document.getElementById('main-view');
+            main.innerHTML = "Buscando...";
+            const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', { ascending: false });
+            
+            if(error) { main.innerHTML = "Erro: " + error.message; return; }
+
+            main.innerHTML = `<h2 class="text-2xl font-black mb-6">Lista de Pacientes</h2>` + 
+                data.map(p => `<div class="p-4 bg-white border rounded-2xl mb-2 font-bold shadow-sm text-slate-700">${p.nome}</div>`).join('');
+        }
+
+        // MÉDICO
         async function renderMedicoHome() {
             const main = document.getElementById('main-view');
-            main.innerHTML = `<p class="animate-pulse font-bold text-blue-600">Buscando dados...</p>`;
+            main.innerHTML = `<p class="animate-pulse font-bold text-blue-600">Conectando ao banco...</p>`;
             
-            if(!supabase) {
-                 main.innerHTML = "Erro de conexão com banco de dados.";
-                 return;
-            }
+            if(!supabase) { main.innerHTML = "Erro: Banco desconectado."; return; }
 
             const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', { ascending: false });
             
-            if(error) {
-                main.innerHTML = "Erro ao buscar pacientes: " + error.message;
-                return;
-            }
+            if(error) { main.innerHTML = "Erro ao buscar: " + error.message; return; }
 
             main.innerHTML = `
                 <div class="fade-in">
@@ -149,7 +164,7 @@
                         `).join('')}
                     </div>
                 </div>`;
-            lucide.createIcons();
+            safeLucide();
         }
 
         function abrirProntuario(id, nome, nascimento) {
@@ -157,16 +172,15 @@
             const nasc = new Date(nascimento);
             const hoje = new Date();
             let mesesIdade = (hoje.getFullYear() - nasc.getFullYear()) * 12 + (hoje.getMonth() - nasc.getMonth());
-            if (hoje.getDate() < nasc.getDate()) mesesIdade--; // Ajuste de dia
-            
-            if(isNaN(mesesIdade)) mesesIdade = "?";
+            if (hoje.getDate() < nasc.getDate()) mesesIdade--;
+            if(isNaN(mesesIdade)) mesesIdade = 0;
 
             main.innerHTML = `
                 <div class="max-w-5xl mx-auto fade-in">
                     <div class="flex justify-between items-end mb-10">
                         <div><span class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Idade: ${mesesIdade} meses</span>
                         <h2 class="text-4xl font-black text-slate-800 mt-2">${nome}</h2></div>
-                        <button onclick="renderMedicoHome()" class="text-slate-400 font-bold hover:text-blue-600">Voltar</button>
+                        <button onclick="renderMedicoHome()" class="text-slate-400 font-bold hover:text-blue-600 cursor-pointer">Voltar</button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="md:col-span-2 space-y-6">
@@ -182,12 +196,12 @@
                         </div>
                         <div class="space-y-6">
                             <div class="bg-slate-900 text-white p-8 rounded-[40px] shadow-2xl">
-                                <button onclick="finalizarConsulta('${id}', '${mesesIdade}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black transition">FINALIZAR CONSULTA</button>
+                                <button onclick="finalizarConsulta('${id}', '${mesesIdade}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black transition cursor-pointer">FINALIZAR CONSULTA</button>
                             </div>
                         </div>
                     </div>
                 </div>`;
-            lucide.createIcons();
+            safeLucide();
         }
 
         async function finalizarConsulta(paciente_id, idadeMeses) {
@@ -200,16 +214,7 @@
             if (error) alert("Erro: " + error.message); else { alert("Salvo!"); renderMedicoHome(); }
         }
 
-        async function listarPacientesSecretaria() {
-            const main = document.getElementById('main-view');
-            const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', { ascending: false });
-            if(error) return alert("Erro: " + error.message);
-            
-            main.innerHTML = `<h2 class="text-2xl font-black mb-6">Lista de Pacientes</h2>` + 
-                data.map(p => `<div class="p-4 bg-white border rounded-2xl mb-2 font-bold shadow-sm text-slate-700">${p.nome}</div>`).join('');
-        }
-
-        lucide.createIcons();
+        safeLucide();
     </script>
 </body>
 </html>
