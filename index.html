@@ -2,94 +2,168 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Clinic Hero | Fix Final v1.6</title>
+    <title>Clinic Hero | Radar de Alertas v1.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .pep-card { background: white; border-radius: 24px; border: 1px solid #f1f5f9; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02); }
+        .input-ped { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; text-align: center; font-weight: bold; color: #2563eb; }
+    </style>
 </head>
-<body class="bg-slate-900 h-screen flex items-center justify-center font-sans">
+<body class="bg-[#F8FAFC] h-screen overflow-hidden flex flex-col font-sans text-slate-900">
 
-    <div id="setup-card" class="bg-white p-10 rounded-3xl shadow-2xl w-96 text-center">
-        <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">CH</div>
-        <h1 class="text-xl font-bold mb-8 text-slate-800">Portal Clinic Hero</h1>
-        
-        <div class="space-y-3">
-            <button onclick="entrarApp('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold hover:bg-slate-700 transition">Acesso Médico</button>
-            <button onclick="entrarApp('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition">Acesso Recepção</button>
+    <header class="h-16 bg-white border-b px-8 flex items-center justify-between z-30">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-xl font-black shadow-lg shadow-blue-200">CH</div>
+            <h1 class="font-bold text-slate-700 tracking-tight">CLINIC HERO <span class="text-blue-500 text-[10px] ml-2 px-2 py-0.5 bg-blue-50 rounded-full">PEDIATRIA PRO</span></h1>
         </div>
-        <p id="db-msg" class="mt-6 text-[10px] text-slate-400 uppercase italic">Aguardando comando...</p>
-    </div>
+        <button onclick="location.reload()" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="power"></i></button>
+    </header>
 
-    <div id="app" style="display:none" class="fixed inset-0 bg-slate-50 flex flex-col">
-        <header class="h-14 bg-white border-b px-6 flex items-center justify-between shadow-sm font-bold text-blue-600">
-            CLINIC HERO
-            <button onclick="location.reload()" class="text-xs text-slate-400">SAIR</button>
-        </header>
-        <div class="flex flex-1 overflow-hidden">
-            <aside class="w-64 bg-white border-r p-4" id="nav-area"></aside>
-            <main class="flex-1 p-8 overflow-y-auto" id="view-area"></main>
-        </div>
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 bg-white border-r p-6 flex flex-col gap-2" id="sidebar"></aside>
+        <main class="flex-1 p-10 overflow-y-auto" id="main-view"></main>
     </div>
 
     <script>
-        // Configurações
         const SB_URL = "https://ptcntqkmeypufwjrknyt.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
-        
-        let supabaseClient = null;
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // Inicialização Segura
-        window.onload = function() {
-            try {
-                if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-                    document.getElementById('db-msg').innerText = "Banco de Dados Pronto";
-                }
-            } catch (e) {
-                document.getElementById('db-msg').innerText = "Erro ao carregar banco";
-            }
+        window.onload = () => {
+            document.getElementById('main-view').innerHTML = `
+                <div class="max-w-md mx-auto mt-20 text-center bg-white p-12 rounded-[40px] shadow-2xl shadow-slate-200">
+                    <h2 class="text-2xl font-black mb-10 text-slate-800">Acesso Restrito</h2>
+                    <div class="space-y-4">
+                        <button onclick="app('medico')" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold hover:bg-slate-800 transition active:scale-95 shadow-xl">Portal Médico</button>
+                        <button onclick="app('secretaria')" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold hover:bg-blue-700 transition active:scale-95 shadow-xl shadow-blue-100">Portal Recepção</button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
         };
 
-        function entrarApp(perfil) {
-            // Esconde login e mostra app usando display puro do navegador
-            document.getElementById('setup-card').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            
-            const nav = document.getElementById('nav-area');
-            const view = document.getElementById('view-area');
-
-            if(perfil === 'medico') {
-                nav.innerHTML = '<button class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold">Atendimento</button>';
-                view.innerHTML = '<h2 class="text-2xl font-bold">Área do Médico Full-Service</h2><p>Pronto para iniciar.</p>';
+        function app(role) {
+            const side = document.getElementById('sidebar');
+            if(role === 'medico') {
+                side.innerHTML = `<button onclick="listaMedica()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-50 text-blue-600 font-bold"><i data-lucide="list"></i> Atendimentos</button>`;
+                listaMedica();
             } else {
-                nav.innerHTML = '<button onclick="abaCadastro()" class="w-full text-left p-3 rounded-xl bg-blue-50 text-blue-600 font-bold">Novo Cadastro</button>';
-                abaCadastro();
+                side.innerHTML = `<button onclick="novaFicha()" class="flex items-center gap-3 p-4 w-full rounded-2xl bg-blue-600 text-white font-bold"><i data-lucide="plus-circle"></i> Novo Cadastro</button>`;
+                novaFicha();
             }
+            lucide.createIcons();
         }
 
-        function abaCadastro() {
-            document.getElementById('view-area').innerHTML = `
-                <div class="max-w-md bg-white p-6 rounded-2xl border shadow-sm">
-                    <h2 class="font-bold mb-4">Novo Paciente (Teste Supabase)</h2>
-                    <input id="nome_paciente" placeholder="Nome completo" class="w-full p-2 border rounded mb-3 outline-none">
-                    <button onclick="salvarNoBanco()" class="w-full bg-blue-600 text-white py-2 rounded font-bold">Salvar Agora</button>
+        // --- LÓGICA DE IDADE NA DATA DA CONSULTA ---
+        function calcularIdadeNaData(nascimento, dataConsulta) {
+            const nasc = new Date(nascimento);
+            const ref = new Date(dataConsulta);
+            
+            let meses = (ref.getFullYear() - nasc.getFullYear()) * 12 + (ref.getMonth() - nasc.getMonth());
+            if (ref.getDate() < nasc.getDate()) meses--;
+            
+            return meses < 0 ? "Data Inválida" : meses + " meses";
+        }
+
+        async function listaMedica() {
+            const { data } = await supabase.from('pacientes').select('*');
+            document.getElementById('main-view').innerHTML = `
+                <h2 class="text-3xl font-black mb-8 text-slate-800">Fila de Espera</h2>
+                <div class="grid gap-4">
+                    ${data.map(p => `
+                        <div onclick="prontuario('${p.id}', '${p.nome}', '${p.data_nascimento}')" class="pep-card hover:border-blue-500 transition cursor-pointer flex justify-between items-center group">
+                            <div>
+                                <h4 class="font-bold text-lg group-hover:text-blue-600">${p.nome}</h4>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Nascimento: ${p.data_nascimento ? new Date(p.data_nascimento).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                            </div>
+                            <span class="text-blue-600 font-black text-xs">ABRIR FICHA</span>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
 
-        async function salvarNoBanco() {
-            const nome = document.getElementById('nome_paciente').value;
-            if(!nome) return alert("Preencha o nome");
-            
-            if(!supabaseClient) return alert("Banco não conectado!");
+        function prontuario(id, nome, nascimento) {
+            const hoje = new Date().toISOString().split('T')[0];
+            const idadeConsulta = calcularIdadeNaData(nascimento, hoje);
 
-            const { error } = await supabaseClient.from('pacientes').insert([{ nome: nome }]);
-            
-            if (error) {
-                alert("Erro: " + error.message);
-            } else {
-                alert("Sucesso! " + nome + " foi salvo.");
-                document.getElementById('nome_paciente').value = '';
+            document.getElementById('main-view').innerHTML = `
+                <div class="max-w-5xl mx-auto">
+                    <div class="flex justify-between items-end mb-10">
+                        <div>
+                            <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Idade na consulta: ${idadeConsulta}</span>
+                            <h2 class="text-4xl font-black text-slate-800 mt-2">${nome}</h2>
+                        </div>
+                        <button onclick="listaMedica()" class="text-slate-400 font-bold hover:text-blue-600 transition">Voltar</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="md:col-span-2 space-y-6">
+                            <div class="pep-card grid grid-cols-3 gap-6 border-b-4 border-b-blue-500">
+                                <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Peso (kg)</p><input id="c_peso" type="number" step="0.001" class="input-ped w-full"></div>
+                                <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Altura (cm)</p><input id="c_alt" type="number" class="input-ped w-full"></div>
+                                <div><p class="text-[10px] font-bold text-slate-400 uppercase mb-2">P. Cefálico</p><input id="c_pc" type="number" class="input-ped w-full"></div>
+                            </div>
+                            <div class="pep-card">
+                                <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4 text-blue-500"></i> Evolução Clínica</h4>
+                                <textarea id="c_evo" class="w-full h-80 bg-slate-50 rounded-2xl p-6 outline-none border-none text-slate-600 resize-none" placeholder="Relato da mãe, marcos do desenvolvimento, alimentação..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-slate-900 text-white p-8 rounded-[40px] shadow-2xl">
+                                <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">Status do Ciclo</p>
+                                <div class="text-xl font-bold text-green-400 mb-6">Em dia com o radar</div>
+                                <button onclick="finalizarConsulta('${id}', '${idadeConsulta}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black transition shadow-lg shadow-blue-900/40">FINALIZAR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        async function finalizarConsulta(paciente_id, idadeNaConsulta) {
+            const peso = document.getElementById('c_peso').value;
+            const altura = document.getElementById('c_alt').value;
+            const pc = document.getElementById('c_pc').value;
+            const evo = document.getElementById('c_evo').value;
+
+            const { error } = await supabase.from('consultas').insert([{
+                paciente_id,
+                peso,
+                altura,
+                perimetro_cefalico: pc,
+                evolucao: evo,
+                idade_na_consulta: idadeNaConsulta
+            }]);
+
+            if (error) alert("Erro ao salvar consulta: " + error.message);
+            else {
+                alert("Consulta finalizada! Idade registrada: " + idadeNaConsulta);
+                listaMedica();
             }
+        }
+
+        function novaFicha() {
+            document.getElementById('main-view').innerHTML = `
+                <div class="max-w-md mx-auto pep-card mt-10">
+                    <h2 class="text-xl font-black mb-6">Novo Cadastro</h2>
+                    <input id="f_nome" placeholder="Nome da Criança" class="w-full p-4 bg-slate-50 rounded-xl mb-3 border-none outline-none">
+                    <input id="f_nasc" type="date" class="w-full p-4 bg-slate-50 rounded-xl mb-6 border-none outline-none">
+                    <button onclick="salvarNovo()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black">Cadastrar no Sistema</button>
+                </div>
+            `;
+        }
+
+        async function salvarNovo() {
+            const n = document.getElementById('f_nome').value;
+            const d = document.getElementById('f_nasc').value;
+            const { error } = await supabase.from('pacientes').insert([{ nome: n, data_nascimento: d }]);
+            if (error) alert(error.message);
+            else { alert("Salvo!"); app('secretaria'); }
         }
     </script>
 </body>
