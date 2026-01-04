@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero | Inteligência Pediátrica</title>
+    <title>Clinic Hero | Gestão Financeira v0.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .status-atrasado { border-left: 4px solid #ef4444; background: #fef2f2; }
-        .status-em-dia { border-left: 4px solid #22c55e; background: #f0fdf4; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .card-shadow { box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-slate-50 h-screen overflow-hidden flex flex-col font-sans text-slate-900">
@@ -23,19 +22,28 @@
         </div>
     </div>
 
-    <header class="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm">
+    <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-20">
         <div class="flex items-center gap-2 font-bold text-blue-600">
-            <div class="bg-blue-600 text-white p-1 rounded">CH</div> PEDIATRIA SMART
+            <div class="bg-blue-600 text-white p-1 rounded">CH</div> GESTÃO FINANCEIRA
         </div>
         <div class="flex items-center gap-4">
-            <span id="label-perfil" class="text-xs font-bold uppercase text-slate-400 tracking-widest"></span>
-            <div class="w-8 h-8 bg-slate-200 rounded-full"></div>
+            <div id="hud-secretaria" class="hidden flex items-center gap-4 border-r pr-4">
+                <span class="text-[10px] font-bold text-blue-600">XP: 850</span>
+                <div class="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full border border-amber-200">
+                    <i data-lucide="coins" class="text-amber-500 w-3 h-3"></i>
+                    <span class="font-bold text-amber-700 text-xs">450</span>
+                </div>
+            </div>
+            <span id="label-perfil" class="text-xs font-bold uppercase text-slate-400"></span>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-64 bg-white border-r p-4 space-y-2">
-            <nav id="menu-nav"></nav>
+        <aside class="w-64 bg-white border-r p-4 flex flex-col">
+            <nav id="menu-nav" class="flex-1 space-y-1"></nav>
+            <button onclick="location.reload()" class="text-left p-3 text-slate-400 hover:text-red-500 flex items-center gap-2 text-sm font-bold">
+                <i data-lucide="log-out"></i> Sair
+            </button>
         </aside>
 
         <main id="main-content" class="flex-1 p-8 overflow-y-auto">
@@ -44,79 +52,129 @@
 
     <script>
         let userRole = '';
-        
-        // Simulação de Dados com a sua Regra de Negócio
-        const pacientes = [
-            { nome: "Enzo Gabriel", idadeMeses: 8, ultimaConsulta: 45, status: "Atrasado" }, // Regra: Mensal. Atrasado pq faz 45 dias.
-            { nome: "Valentina Rosa", idadeMeses: 15, ultimaConsulta: 20, status: "Em dia" }, // Regra: 3 em 3 meses.
-            { nome: "Theo Lima", idadeMeses: 60, ultimaConsulta: 400, status: "Atrasado" } // Regra: Anual.
-        ];
+        const valorConsulta = 350; // Valor fictício para cálculo
 
         function logar(role) {
             userRole = role;
             document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('label-perfil').innerText = role === 'medico' ? 'Dr. Pediatra' : 'Recepção';
+            document.getElementById('label-perfil').innerText = role === 'medico' ? 'Dr. Ricardo' : 'Julia (Recepção)';
+            if(role === 'secretaria') document.getElementById('hud-secretaria').classList.remove('hidden');
             renderMenu();
-            role === 'medico' ? renderMedicoHome() : renderSecretariaHome();
+            role === 'medico' ? renderFinanceiroMedico() : renderFinanceiroSecretaria();
         }
 
         function renderMenu() {
             const nav = document.getElementById('menu-nav');
             if(userRole === 'medico') {
                 nav.innerHTML = `
-                    <button onclick="renderMedicoHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="home"></i> Dashboard</button>
-                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="users"></i> Meus Pacientes</button>
+                    <button onclick="renderFinanceiroMedico()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="pie-chart"></i> Painel Financeiro</button>
+                    <button class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="users"></i> Pacientes</button>
                 `;
             } else {
                 nav.innerHTML = `
-                    <button onclick="renderSecretariaHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2 font-bold text-blue-600"><i data-lucide="zap"></i> Radar de Resgate</button>
-                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="calendar"></i> Agenda Geral</button>
+                    <button onclick="renderFinanceiroSecretaria()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="dollar-sign"></i> Caixa do Dia</button>
+                    <button class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="zap"></i> Radar de Resgate</button>
                 `;
             }
             lucide.createIcons();
         }
 
-        // VISÃO DA SECRETÁRIA: FOCO NO RESGATE (Regras de Pediatria)
-        function renderSecretariaHome() {
+        // TELA FINANCEIRA DO MÉDICO: Visão de Perda vs Ganho
+        function renderFinanceiroMedico() {
             const main = document.getElementById('main-content');
+            const pacientesAtrasados = 14; 
+            const perdaTotal = pacientesAtrasados * valorConsulta;
+
             main.innerHTML = `
                 <div class="fade-in">
-                    <h2 class="text-2xl font-bold mb-2">Radar de Resgate de Pacientes</h2>
-                    <p class="text-slate-500 mb-8">Pacientes fora da periodicidade recomendada (Regras de Puericultura)</p>
+                    <h2 class="text-2xl font-bold mb-6">Saúde Financeira da Clínica</h2>
                     
-                    <div class="space-y-4">
-                        ${pacientes.filter(p => p.status === "Atrasado").map(p => `
-                            <div class="p-5 rounded-2xl border shadow-sm flex items-center justify-between status-atrasado">
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-lg">${p.nome}</h4>
-                                    <p class="text-sm text-slate-500">Idade: ${p.idadeMeses} meses • <b>Última consulta há ${p.ultimaConsulta} dias</b></p>
-                                    <span class="inline-block mt-2 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase">Atraso Crítico</span>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
-                                        <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp Resgate
-                                    </button>
-                                    <div class="text-right">
-                                        <span class="block text-xs font-bold text-slate-400">Recompensa</span>
-                                        <span class="font-bold text-blue-600">+50 XP</span>
-                                    </div>
-                                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-3xl border border-slate-100 card-shadow">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faturamento Mês</span>
+                            <div class="text-3xl font-bold text-slate-800">R$ 18.200,00</div>
+                            <p class="text-xs text-green-600 font-bold mt-2">↑ 12% em relação a Dezembro</p>
+                        </div>
+                        <div class="bg-red-50 p-6 rounded-3xl border border-red-100 card-shadow">
+                            <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Receita em Risco (Churn)</span>
+                            <div class="text-3xl font-bold text-red-600">R$ ${perdaTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                            <p class="text-xs text-red-500 mt-2 font-medium">${pacientesAtrasados} pacientes de Pediatria sumiram.</p>
+                        </div>
+                        <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white">
+                            <span class="text-[10px] font-bold opacity-70 uppercase tracking-widest">Meta de Resgate</span>
+                            <div class="text-3xl font-bold">R$ 4.900,00</div>
+                            <p class="text-xs opacity-80 mt-2">Se a recepção recuperar os atrasados.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 card-shadow">
+                        <h3 class="font-bold mb-4">Relatório de Performance da Recepção</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                <span class="text-sm font-bold">Conversão de Agendamento</span>
+                                <span class="text-sm font-bold text-blue-600">94%</span>
                             </div>
-                        `).join('')}
+                            <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                                <span class="text-sm font-bold">Resgates Concluídos</span>
+                                <span class="text-sm font-bold text-green-600">8 de 22</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
             lucide.createIcons();
         }
 
-        function renderMedicoHome() {
+        // TELA DE CAIXA DA SECRETÁRIA
+        function renderFinanceiroSecretaria() {
             const main = document.getElementById('main-content');
             main.innerHTML = `
                 <div class="fade-in">
-                    <h2 class="text-2xl font-bold mb-6 text-slate-800">Próximos Atendimentos</h2>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center py-20 text-slate-400">
-                        <i data-lucide="calendar" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-                        <p>Nenhum paciente na sala de espera agora.</p>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Controle de Caixa</h2>
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg">+ Novo Recebimento</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Total Hoje</p>
+                            <p class="text-xl font-bold">R$ 1.450,00</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Dinheiro</p>
+                            <p class="text-xl font-bold">R$ 200,00</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border text-center">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Cartão/Pix</p>
+                            <p class="text-xl font-bold">R$ 1.250,00</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-2xl border border-green-200 text-center">
+                            <p class="text-[10px] text-green-600 font-bold uppercase">Bônus XP Acumulado</p>
+                            <p class="text-xl font-bold text-green-700">+120 XP</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-slate-100 card-shadow overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 font-bold">
+                                <tr>
+                                    <th class="p-4">Paciente</th>
+                                    <th class="p-4">Procedimento</th>
+                                    <th class="p-4">Forma</th>
+                                    <th class="p-4">Valor</th>
+                                    <th class="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr>
+                                    <td class="p-4 font-bold">Enzo Gabriel</td>
+                                    <td class="p-4 text-slate-500">Consulta Pediatria</td>
+                                    <td class="p-4"><span class="bg-slate-100 px-2 py-1 rounded">Pix</span></td>
+                                    <td class="p-4 font-bold">R$ 350,00</td>
+                                    <td class="p-4"><span class="text-green-600 font-bold">✓ Pago</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `;
