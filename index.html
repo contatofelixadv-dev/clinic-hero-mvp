@@ -3,64 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero | Integração Real v1.0</title>
+    <title>Clinic Hero | Conexão Real v1.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body class="bg-slate-50 h-screen overflow-hidden flex flex-col font-sans text-slate-900">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
         <div class="bg-white p-10 rounded-3xl shadow-2xl w-96 text-center">
-            <h1 class="text-2xl font-bold mb-8">Conectando ao Banco...</h1>
-            <div id="btn-group" class="space-y-3 hidden">
-                <button onclick="logar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold">Portal Médico</button>
-                <button onclick="logar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Portal Recepção</button>
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">CH</div>
+            <h1 id="status-text" class="text-xl font-bold mb-8">Conectando ao Supabase...</h1>
+            
+            <div id="loader" class="flex justify-center mb-4">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
-            <div id="loader" class="text-blue-600 animate-spin flex justify-center">
-                <i data-lucide="loader-2" class="w-10 h-10"></i>
+
+            <div id="btn-group" class="space-y-3 hidden">
+                <button onclick="logar('medico')" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-xl font-bold transition">Portal Médico</button>
+                <button onclick="logar('secretaria')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold transition">Portal Recepção</button>
             </div>
         </div>
     </div>
 
-    <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-20 shadow-sm">
+    <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-20">
         <div class="flex items-center gap-2 font-bold text-blue-600">
             <div class="bg-blue-600 text-white p-1.5 rounded-lg">CH</div> CLINIC HERO
         </div>
-        <div id="user-info" class="text-sm font-bold text-slate-500 italic">Módulo Online</div>
+        <div id="perfil-tag" class="text-xs font-bold uppercase text-slate-400 bg-slate-50 px-3 py-1 rounded-full border">Offline</div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-64 bg-white border-r p-4 flex flex-col space-y-1" id="menu-nav"></aside>
-        <main id="main-content" class="flex-1 p-8 overflow-y-auto bg-slate-50/50"></main>
+        <aside class="w-64 bg-white border-r p-4 flex flex-col">
+            <nav id="menu-nav" class="flex-1 space-y-1"></nav>
+            <button onclick="location.reload()" class="text-left p-3 text-slate-400 hover:text-red-500 flex items-center gap-2 text-sm font-bold">
+                <i data-lucide="log-out"></i> Sair
+            </button>
+        </aside>
+
+        <main id="main-content" class="flex-1 p-8 overflow-y-auto bg-slate-50/50">
+            </main>
     </div>
 
     <script>
-        // CONFIGURAÇÃO REAL DO SUPABASE (SUAS CHAVES)
+        // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = "https://ptcntqkmeypufwjrknyt.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0Y250cWttZXlwdWZ3anJrbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1Mzg3NjAsImV4cCI6MjA4MzExNDc2MH0.GPK2aNE9LYBBLVzFq7SVldhE0rzkXI3teYfwwh7TMtk";
-        const supabase = collections = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let userRole = '';
 
-        // TESTE DE CONEXÃO INICIAL
-        async function testarConexao() {
+        // TESTE DE CONEXÃO
+        async function inicializar() {
             try {
-                const { data, error } = await supabase.from('pacientes').select('count', { count: 'exact', head: true });
-                if (error) throw error;
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('btn-group').classList.remove('hidden');
-                document.querySelector('h1').innerText = "Sistema Online";
+                // Tenta uma consulta simples para validar a conexão
+                const { data, error } = await supabase.from('pacientes').select('*').limit(1);
+                
+                if (error) {
+                    console.error("Erro na tabela:", error);
+                    document.getElementById('status-text').innerText = "Erro: Tabela não configurada";
+                    document.getElementById('loader').innerHTML = "<i data-lucide='alert-circle' class='text-red-500 w-10 h-10'></i>";
+                } else {
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('btn-group').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "Sistema Online";
+                }
             } catch (err) {
-                document.querySelector('h1').innerText = "Erro na Conexão";
+                document.getElementById('status-text').innerText = "Falha na conexão externa";
                 console.error(err);
             }
+            lucide.createIcons();
         }
-        testarConexao();
+
+        // Inicia a checagem ao carregar a página
+        inicializar();
 
         function logar(role) {
             userRole = role;
             document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('perfil-tag').innerText = role === 'medico' ? 'Dr. Pediatra' : 'Recepção';
             renderMenu();
             role === 'medico' ? renderMedicoHome() : renderSecretariaHome();
         }
@@ -68,61 +93,93 @@
         function renderMenu() {
             const nav = document.getElementById('menu-nav');
             if(userRole === 'medico') {
-                nav.innerHTML = `<button onclick="renderMedicoHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-100 flex items-center gap-2"><i data-lucide="stethoscope"></i> Atendimento</button>`;
+                nav.innerHTML = `
+                    <button onclick="renderMedicoHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="home"></i> Dashboard</button>
+                    <button onclick="listarPacientes()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="users"></i> Meus Pacientes</button>
+                `;
             } else {
                 nav.innerHTML = `
-                    <button onclick="renderSecretariaHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-100 flex items-center gap-2 font-bold text-blue-600"><i data-lucide="layout-dashboard"></i> Cockpit</button>
-                    <button onclick="renderNovoPaciente()" class="w-full text-left p-3 rounded-xl hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Paciente</button>
+                    <button onclick="renderSecretariaHome()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2 font-bold text-blue-600"><i data-lucide="layout-dashboard"></i> Cockpit</button>
+                    <button onclick="renderNovoPaciente()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Paciente</button>
+                    <button onclick="listarPacientes()" class="w-full text-left p-3 rounded-xl hover:bg-slate-50 flex items-center gap-2"><i data-lucide="database"></i> Banco de Dados</button>
                 `;
             }
             lucide.createIcons();
         }
 
-        function renderSecretariaHome() {
-            const main = document.getElementById('main-content');
-            main.innerHTML = `<h2 class="text-2xl font-bold mb-4">Carregando lista de pacientes...</h2>`;
-            listarPacientes();
-        }
-
         async function listarPacientes() {
-            const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', { ascending: false });
             const main = document.getElementById('main-content');
-            if (data) {
-                main.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-6">Pacientes Cadastrados</h2>
+            main.innerHTML = `<div class="animate-pulse">Consultando banco de dados...</div>`;
+            
+            const { data, error } = await supabase.from('pacientes').select('*').order('criado_em', { ascending: false });
+            
+            if (error) {
+                main.innerHTML = `<p class="text-red-500">Erro ao buscar dados: ${error.message}</p>`;
+                return;
+            }
+
+            main.innerHTML = `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold mb-6 flex justify-between">Lista de Pacientes <span class="text-sm font-normal text-slate-400">${data.length} registros</span></h2>
                     <div class="grid gap-4">
-                        ${data.map(p => `
-                            <div class="bg-white p-4 rounded-xl border shadow-sm flex justify-between items-center">
-                                <div><p class="font-bold">${p.nome}</p><p class="text-xs text-slate-500">Resp: ${p.nome_responsavel || 'N/A'}</p></div>
-                                <span class="text-xs font-bold text-blue-600">${p.convenio}</span>
+                        ${data.length === 0 ? '<p class="text-slate-400 italic">Nenhum paciente cadastrado ainda.</p>' : data.map(p => `
+                            <div class="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center hover:border-blue-300 transition cursor-pointer">
+                                <div>
+                                    <p class="font-bold text-slate-800">${p.nome}</p>
+                                    <p class="text-xs text-slate-500">Responsável: ${p.nome_responsavel || 'Não informado'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase">${p.convenio}</span>
+                                    <p class="text-[10px] text-slate-300 mt-1">${new Date(p.criado_em).toLocaleDateString('pt-BR')}</p>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
-                `;
-            }
+                </div>
+            `;
+            lucide.createIcons();
         }
 
         function renderNovoPaciente() {
             const main = document.getElementById('main-content');
             main.innerHTML = `
-                <div class="max-w-md mx-auto bg-white p-8 rounded-3xl border shadow-sm">
-                    <h2 class="text-xl font-bold mb-6">Novo Cadastro (Pediatria)</h2>
+                <div class="fade-in max-w-md mx-auto bg-white p-8 rounded-3xl border shadow-sm mt-10">
+                    <h2 class="text-xl font-bold mb-6">Cadastrar no Supabase</h2>
                     <div class="space-y-4">
-                        <input id="p_nome" type="text" placeholder="Nome da Criança" class="w-full p-3 border rounded-xl">
-                        <input id="p_nasc" type="date" class="w-full p-3 border rounded-xl">
-                        <input id="p_resp" type="text" placeholder="Nome do Responsável" class="w-full p-3 border rounded-xl">
-                        <select id="p_conv" class="w-full p-3 border rounded-xl">
-                            <option>Particular</option>
-                            <option>Unimed</option>
-                            <option>Bradesco</option>
-                        </select>
-                        <button onclick="salvarPaciente()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Salvar no Banco de Dados</button>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome Completo</label>
+                            <input id="p_nome" type="text" placeholder="Ex: João Silva" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Data de Nascimento</label>
+                            <input id="p_nasc" type="date" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Responsável</label>
+                            <input id="p_resp" type="text" placeholder="Nome da Mãe ou Pai" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Convênio</label>
+                            <select id="p_conv" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Particular</option>
+                                <option>Unimed</option>
+                                <option>Bradesco Saúde</option>
+                                <option>Amil</option>
+                            </select>
+                        </div>
+                        <button onclick="salvarPaciente()" id="btn-salvar" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition">
+                            Finalizar Cadastro
+                        </button>
                     </div>
                 </div>
             `;
         }
 
         async function salvarPaciente() {
+            const btn = document.getElementById('btn-salvar');
+            btn.innerText = "Salvando...";
+            btn.disabled = true;
+
             const nome = document.getElementById('p_nome').value;
             const nasc = document.getElementById('p_nasc').value;
             const resp = document.getElementById('p_resp').value;
@@ -134,15 +191,22 @@
 
             if (error) {
                 alert("Erro ao salvar: " + error.message);
+                btn.innerText = "Tentar Novamente";
+                btn.disabled = false;
             } else {
-                alert("Paciente salvo com sucesso!");
-                renderSecretariaHome();
+                alert("Sucesso! Paciente salvo no banco de dados.");
+                listarPacientes();
             }
+        }
+
+        function renderSecretariaHome() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `<h2 class="text-2xl font-bold">Bem-vindo ao Cockpit</h2><p class="text-slate-500">Selecione uma opção no menu lateral para começar.</p>`;
         }
 
         function renderMedicoHome() {
             const main = document.getElementById('main-content');
-            main.innerHTML = `<h2 class="text-2xl font-bold">Módulo Médico Pronto para Prontuários Reais</h2>`;
+            main.innerHTML = `<h2 class="text-2xl font-bold">Painel do Dr. Pediatra</h2><p class="text-slate-500">Consulte a lista de pacientes para iniciar um atendimento.</p>`;
         }
 
         lucide.createIcons();
