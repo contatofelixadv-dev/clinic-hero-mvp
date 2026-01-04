@@ -3,36 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero | Full-Service v0.3</title>
+    <title>Clinic Hero | Inteligência Pediátrica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .sidebar-active { background: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
+        .status-atrasado { border-left: 4px solid #ef4444; background: #fef2f2; }
+        .status-em-dia { border-left: 4px solid #22c55e; background: #f0fdf4; }
     </style>
 </head>
-<body class="bg-slate-50 h-screen overflow-hidden flex flex-col font-sans">
+<body class="bg-slate-50 h-screen overflow-hidden flex flex-col font-sans text-slate-900">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
         <div class="bg-white p-10 rounded-3xl shadow-2xl w-96 text-center">
-            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">CH</div>
-            <h1 class="text-2xl font-bold mb-8">Acesso Clinic Hero</h1>
-            <button onclick="logar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold mb-4 flex items-center justify-center gap-2">
-                <i data-lucide="stethoscope"></i> Portal Médico
-            </button>
-            <button onclick="logar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                <i data-lucide="users"></i> Portal Recepção
-            </button>
+            <h1 class="text-2xl font-bold mb-8">Portal Clinic Hero</h1>
+            <button onclick="logar('medico')" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold mb-4">Acesso Médico</button>
+            <button onclick="logar('secretaria')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">Acesso Recepção</button>
         </div>
     </div>
 
-    <header class="h-16 bg-white border-b flex items-center justify-between px-6">
-        <div class="flex items-center gap-4 font-bold text-blue-600">
-            <span class="bg-blue-600 text-white p-1 rounded">CH</span> CLINIC HERO
+    <header class="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center gap-2 font-bold text-blue-600">
+            <div class="bg-blue-600 text-white p-1 rounded">CH</div> PEDIATRIA SMART
         </div>
-        <div id="user-info" class="flex items-center gap-3">
-            <span id="user-name" class="text-sm font-bold text-slate-700"></span>
+        <div class="flex items-center gap-4">
+            <span id="label-perfil" class="text-xs font-bold uppercase text-slate-400 tracking-widest"></span>
             <div class="w-8 h-8 bg-slate-200 rounded-full"></div>
         </div>
     </header>
@@ -48,82 +44,79 @@
 
     <script>
         let userRole = '';
+        
+        // Simulação de Dados com a sua Regra de Negócio
+        const pacientes = [
+            { nome: "Enzo Gabriel", idadeMeses: 8, ultimaConsulta: 45, status: "Atrasado" }, // Regra: Mensal. Atrasado pq faz 45 dias.
+            { nome: "Valentina Rosa", idadeMeses: 15, ultimaConsulta: 20, status: "Em dia" }, // Regra: 3 em 3 meses.
+            { nome: "Theo Lima", idadeMeses: 60, ultimaConsulta: 400, status: "Atrasado" } // Regra: Anual.
+        ];
 
         function logar(role) {
             userRole = role;
             document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('user-name').innerText = role === 'medico' ? 'Dr. Pediatra' : 'Recepção';
+            document.getElementById('label-perfil').innerText = role === 'medico' ? 'Dr. Pediatra' : 'Recepção';
             renderMenu();
-            renderHome();
+            role === 'medico' ? renderMedicoHome() : renderSecretariaHome();
         }
 
         function renderMenu() {
             const nav = document.getElementById('menu-nav');
             if(userRole === 'medico') {
                 nav.innerHTML = `
-                    <button onclick="renderHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="home"></i> Início</button>
-                    <button onclick="renderPEP()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="baby"></i> Prontuário Pediatria</button>
+                    <button onclick="renderMedicoHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="home"></i> Dashboard</button>
+                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="users"></i> Meus Pacientes</button>
                 `;
             } else {
                 nav.innerHTML = `
-                    <button onclick="renderHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="layout-dashboard"></i> Cockpit</button>
-                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Cadastro</button>
+                    <button onclick="renderSecretariaHome()" class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2 font-bold text-blue-600"><i data-lucide="zap"></i> Radar de Resgate</button>
+                    <button class="w-full text-left p-3 rounded-lg hover:bg-slate-50 flex items-center gap-2"><i data-lucide="calendar"></i> Agenda Geral</button>
                 `;
             }
             lucide.createIcons();
         }
 
-        function renderHome() {
-            const main = document.getElementById('main-content');
-            main.innerHTML = `<h2 class="text-2xl font-bold">Bem-vindo ao ${userRole === 'medico' ? 'Consultório' : 'Painel Hero'}</h2>`;
-        }
-
-        // PRONTUÁRIO PERSONALIZADO: PEDIATRIA
-        function renderPEP() {
+        // VISÃO DA SECRETÁRIA: FOCO NO RESGATE (Regras de Pediatria)
+        function renderSecretariaHome() {
             const main = document.getElementById('main-content');
             main.innerHTML = `
-                <div class="fade-in max-w-4xl mx-auto">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="baby" class="text-pink-500"></i> Atendimento Pediátrico</h2>
-                        <span class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">ID: #4920</span>
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold mb-2">Radar de Resgate de Pacientes</h2>
+                    <p class="text-slate-500 mb-8">Pacientes fora da periodicidade recomendada (Regras de Puericultura)</p>
+                    
+                    <div class="space-y-4">
+                        ${pacientes.filter(p => p.status === "Atrasado").map(p => `
+                            <div class="p-5 rounded-2xl border shadow-sm flex items-center justify-between status-atrasado">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-lg">${p.nome}</h4>
+                                    <p class="text-sm text-slate-500">Idade: ${p.idadeMeses} meses • <b>Última consulta há ${p.ultimaConsulta} dias</b></p>
+                                    <span class="inline-block mt-2 text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase">Atraso Crítico</span>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button class="bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp Resgate
+                                    </button>
+                                    <div class="text-right">
+                                        <span class="block text-xs font-bold text-slate-400">Recompensa</span>
+                                        <span class="font-bold text-blue-600">+50 XP</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div class="bg-white p-4 rounded-xl border">
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Paciente</label>
-                            <input type="text" class="w-full font-bold text-lg outline-none" value="Enzo Gabriel Ferreira">
-                        </div>
-                        <div class="bg-white p-4 rounded-xl border">
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Responsável (Mãe/Pai)</label>
-                            <input type="text" class="w-full font-bold outline-none" value="Mariana Ferreira">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 mb-6">
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
-                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Peso (kg)</span>
-                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="12.500">
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
-                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Altura (cm)</span>
-                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="85">
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
-                            <span class="block text-[10px] font-bold text-blue-400 uppercase">Perímetro Cef.</span>
-                            <input type="text" class="w-full bg-transparent text-center font-bold text-blue-700 outline-none" value="48 cm">
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border mb-6 shadow-sm">
-                        <h3 class="font-bold text-sm text-slate-700 mb-4 border-b pb-2">Evolução do Desenvolvimento</h3>
-                        <textarea class="w-full h-40 outline-none resize-none text-slate-600 leading-relaxed" placeholder="Descreva o estado da criança, vacinação, alimentação..."></textarea>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button class="flex-1 bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                            <i data-lucide="pill"></i> Prescrever Receita
-                        </button>
-                        <button class="flex-1 bg-green-500 text-white py-4 rounded-xl font-bold">Finalizar e Salvar</button>
+        function renderMedicoHome() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-800">Próximos Atendimentos</h2>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center py-20 text-slate-400">
+                        <i data-lucide="calendar" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                        <p>Nenhum paciente na sala de espera agora.</p>
                     </div>
                 </div>
             `;
