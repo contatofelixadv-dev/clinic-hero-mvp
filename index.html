@@ -3,89 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Hero - O Ecossistema Full-Service</title>
+    <title>Clinic Hero | Gestão em Saúde</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .fade-in { animation: fadeIn 0.4s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Estilos Específicos */
-        .pep-input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; rounded: 6px; }
-        .tab-active { color: #2563eb; background-color: #eff6ff; border-right: 3px solid #2563eb; }
-        .tab-inactive { color: #64748b; }
-        .gamification-gradient { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-active { color: #2563eb; background-color: #f8fafc; border-right: 4px solid #2563eb; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden">
 
-    <div id="screen-login" class="flex items-center justify-center h-full bg-slate-900 absolute w-full z-50">
-        <div class="bg-white p-10 rounded-2xl shadow-2xl w-[400px] text-center fade-in">
-            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 shadow-lg shadow-blue-500/30">CH</div>
-            <h1 class="text-3xl font-bold mb-2 text-slate-800">Clinic Hero</h1>
-            <p class="text-slate-500 mb-8">Gestão Inteligente & Performance</p>
+    <div id="screen-login" class="flex items-center justify-center h-full bg-slate-900 absolute w-full z-50 transition-all duration-500">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-[380px] text-center fade-in">
+            <div class="bg-blue-600 w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 shadow-lg">CH</div>
+            <h1 class="text-2xl font-bold mb-8 text-slate-800 tracking-tight">Portal Clinic Hero</h1>
             
-            <div class="space-y-4">
-                <button onclick="acessarSistema('medico')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition shadow-lg group">
-                    <div class="bg-slate-700 p-1 rounded group-hover:bg-slate-600"><i data-lucide="stethoscope"></i></div>
-                    Sou Médico (Full-Service)
+            <div class="space-y-3">
+                <button onclick="acessar('medico')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-3 transition">
+                    <i data-lucide="stethoscope" class="w-5 h-5 text-blue-400"></i> Acesso Médico
                 </button>
-                <button onclick="acessarSistema('secretaria')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition shadow-lg shadow-blue-500/30 group">
-                    <div class="bg-white/20 p-1 rounded group-hover:bg-white/30"><i data-lucide="trophy"></i></div>
-                    Sou Secretária (Gamificado)
+                <button onclick="acessar('secretaria')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-3 transition shadow-lg shadow-blue-500/30">
+                    <i data-lucide="users" class="w-5 h-5"></i> Acesso Recepção
                 </button>
             </div>
-            <p class="mt-6 text-xs text-slate-400">Versão Alpha 0.2 - Plano de Negócios 2.0</p>
+            <p class="mt-8 text-[10px] text-slate-400 uppercase tracking-widest">Protocolo Seguro v2.0</p>
         </div>
     </div>
 
-    <div id="screen-secretaria" class="hidden h-full flex flex-col bg-slate-50">
-        <header class="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm z-20">
-            <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white p-1.5 rounded font-bold text-sm">CH</div>
-                <span class="font-bold text-slate-700">Recepção Inteligente</span>
+    <div id="screen-system" class="hidden h-full flex flex-col bg-slate-50">
+        
+        <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-30">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-1.5 rounded font-bold text-xs">CH</div>
+                <span id="label-modulo" class="font-bold text-slate-700 uppercase text-xs tracking-wider">Módulo Médico</span>
             </div>
-            <div class="flex items-center gap-6">
+
+            <div id="hud-secretaria" class="hidden flex items-center gap-6">
                 <div class="flex flex-col items-end">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-indigo-600 uppercase">Nível 7</span>
-                        <span class="text-sm font-bold text-slate-800">Guardiã da Agenda</span>
-                    </div>
-                    <div class="w-32 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]" style="width: 75%"></div>
+                    <span class="text-[10px] font-bold text-blue-600 uppercase">Nível 7 • Guardiã</span>
+                    <div class="w-24 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                        <div class="bg-blue-600 h-full w-3/4"></div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200 shadow-sm">
-                    <i data-lucide="coins" class="text-yellow-600 w-4 h-4 fill-yellow-600"></i>
-                    <span class="font-bold text-yellow-700">450</span>
+                <div class="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                    <i data-lucide="coins" class="text-amber-600 w-4 h-4 fill-amber-500"></i>
+                    <span class="font-bold text-amber-700 text-sm">450</span>
                 </div>
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-10 h-10 rounded-full border-2 border-white shadow-md bg-slate-100">
+            </div>
+            
+            <div class="flex items-center gap-3 pl-4 border-l">
+                <div class="text-right hidden sm:block">
+                    <p id="user-name" class="text-sm font-bold text-slate-800 leading-none">Dr. Ricardo Lopes</p>
+                    <span class="text-[10px] text-slate-500 uppercase">Unidade Fortaleza</span>
+                </div>
+                <div class="w-10 h-10 bg-slate-200 rounded-full overflow-hidden border border-slate-200">
+                    <img id="user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Doctor" alt="User">
+                </div>
             </div>
         </header>
 
         <div class="flex flex-1 overflow-hidden">
-            <aside class="w-20 bg-white border-r flex flex-col items-center py-6 gap-4 z-10">
-                <button onclick="navSec('cockpit')" id="btn-cockpit" class="tab-active w-full p-3 flex flex-col items-center gap-1 transition-all group">
-                    <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-bold">Cockpit</span>
+            <aside class="w-20 lg:w-60 bg-white border-r flex flex-col z-20">
+                <nav id="nav-container" class="flex-1 py-4 space-y-1 px-3">
+                    </nav>
+            </aside>
+
+            <main id="main-content" class="flex-1 p-6 overflow-y-auto">
+                </main>
+        </div>
+    </div>
+
+    <script>
+        // BASE DE DADOS FICTÍCIA
+        const db = {
+            pacientesFila: [
+                { id: 1, nome: "Maria Silva", idade: 34, convenio: "Unimed", status: "Em Atendimento", hora: "14:00" },
+                { id: 2, nome: "João Souza", idade: 45, convenio: "Particular", status: "Aguardando", hora: "14:30" },
+                { id: 3, nome: "Ana Paula", idade: 29, convenio: "Bradesco", status: "Confirmado", hora: "15:00" }
+            ],
+            missoes: [
+                { id: 1, titulo: "Confirmar Agenda de Amanhã", xp: 100, progresso: 80, icone: "check-circle" },
+                { id: 2, titulo: "Preencher Vaga 16:00 (Radar)", xp: 50, progresso: 0, icone: "zap" }
+            ]
+        };
+
+        // LÓGICA DE NAVEGAÇÃO
+        function acessar(perfil) {
+            document.getElementById('screen-login').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('screen-system').classList.remove('hidden');
+            
+            if(perfil === 'medico') {
+                renderMedico();
+            } else {
+                renderSecretaria();
+            }
+            lucide.createIcons();
+        }
+
+        function renderMedico() {
+            document.getElementById('label-modulo').innerText = "Atendimento Clínico";
+            document.getElementById('hud-secretaria').classList.add('hidden');
+            
+            // Sidebar Médico
+            const nav = document.getElementById('nav-container');
+            nav.innerHTML = `
+                <div class="text-[10px] font-bold text-slate-400 px-3 mb-2 uppercase">Prontuário</div>
+                <button class="w-full flex items-center gap-3 p-3 bg-blue-50 text-blue-600 rounded-xl font-bold transition">
+                    <i data-lucide="activity"></i> <span class="hidden lg:block">Atendimento</span>
                 </button>
-                <button onclick="navSec('agenda')" id="btn-agenda" class="tab-inactive w-full p-3 flex flex-col items-center gap-1 transition-all hover:bg-slate-50 text-slate-400">
-                    <i data-lucide="calendar" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-bold">Agenda</span>
+                <button class="w-full flex items-center gap-3 p-3 text-slate-500 hover:bg-slate-50 rounded-xl transition">
+                    <i data-lucide="users"></i> <span class="hidden lg:block">Meus Pacientes</span>
                 </button>
-                <button onclick="navSec('crm')" id="btn-crm" class="tab-inactive w-full p-3 flex flex-col items-center gap-1 transition-all hover:bg-slate-50 text-slate-400">
-                    <i data-lucide="users" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-bold">Pacientes</span>
-                </button>
-                <button onclick="navSec('radar')" id="btn-radar" class="tab-inactive w-full p-3 flex flex-col items-center gap-1 transition-all hover:bg-slate-50 text-slate-400 relative">
-                    <i data-lucide="radar" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-bold">Radar</span>
-                    <span class="absolute top-2 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                </button>
-                <button onclick="navSec('financeiro')" id="btn-financeiro" class="tab-inactive w-full p-3 flex flex-col items-center gap-1 transition-all hover:bg-slate-50 text-slate-400">
-                    <i data-lucide="dollar-sign" class="w-6 h-6"></i>
-                    <span class="text-[10px] font-bold">Caixa</span>
-                </button>
-                <div class="flex-1"></div>
-                <button onclick="navSec('loja')" id="btn-loja" class="w-full p-3 flex flex-col items-center gap-1 transition-all hover:bg-purple-50 text-purple-600 mb-4">
-                    <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-                    <span class="text
+            `;
+
+            // Tela PEP (Prontuário)
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="fade-in max-w-5xl mx-auto">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-2xl font-bold text-slate-800">Prontuário Digital</h2>
+                        <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-xs font-bold border border-green-200 animate-pulse">
+                            Paciente em Sala: ${db.pacientesFila[0].nome}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Anamnese / Evolução Clínica</label>
+                                <textarea class="w-full h-48 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Inicie a descrição do atendimento..."></textarea>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600">
+                                <div class="flex justify-between mb-3"><span class="text-xs font-bold text-slate-400 uppercase">Receituário</span> <span class="text-[10px] text-green-600 font-bold">● MEMED ATIVO</span></div>
+                                <input type="text" class="w-full p-3 bg-slate-50 border rounded-lg text-sm" placeholder="Prescrever medicamento...">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-xl text-center">
+                                <span class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Tempo de Consulta</span>
+                                <div class="text-4xl font-mono font-bold my-2">14:02</div>
+                                <button class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold mt-4 transition shadow-lg shadow-green-500/20">FINALIZAR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSecretaria() {
+            document.getElementById('label-modulo').innerText = "Gestão & Performance";
+            document.getElementById('hud-secretaria').classList.remove('hidden');
+            document.getElementById('user-name').innerText = "Julia (Recepção)";
+            document.getElementById('user-avatar').src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
+
+            // Sidebar Secretária (Abas do Plano 2.0)
+            const nav = document.getElementById('nav-container');
+            nav.innerHTML = `
+                <button class="w-full flex items-center gap-3 p-3 bg-blue-50 text-blue-600 rounded-xl font-bold transition"><i data-lucide="layout-dashboard"></i> <span class="hidden lg:block">Cockpit</span></button>
+                <button class="w-full flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-50 rounded-xl transition"><i data-lucide="calendar"></i> <span class="hidden lg:block">Agenda</span></button>
+                <button class="w-full flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-50 rounded-xl transition"><i data-lucide="radar"></i> <span class="hidden lg:block">Radar</span></button>
+                <button class="w-full flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-50 rounded-xl transition"><i data-lucide="dollar-sign"></i> <span class="hidden lg:block">Financeiro</span></button>
+            `;
+
+            // Tela Cockpit
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="fade-in">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-8 tracking-tight">Painel de Missões</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-3">
+                            ${db.missoes.map(m => `
+                                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:border-blue-200 transition group cursor-pointer">
+                                    <div class="bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition"><i data-lucide="${m.icone}"></i></div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-slate-700">${m.titulo}</h4>
+                                        <div class="w-full h-1.5 bg-slate-100 rounded-full mt-2">
+                                            <div class="bg-blue-600 h-full rounded-full" style="width: ${m.progresso}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block text-xs font-bold text-slate-400 uppercase">Ganhos</span>
+                                        <span class="font-bold text-blue-600">+${m.xp} XP</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-500/20">
+                            <h3 class="font-bold opacity-80 text-xs uppercase tracking-widest mb-4">Performance Semanal</h3>
+                            <div class="text-5xl font-bold mb-2">92%</div>
+                            <p class="text-xs opacity-70">Agenda cheia e confirmações concluídas.</p>
+                            <button class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 rounded-xl mt-8 transition backdrop-blur-md">VER LOJA DE RECOMPENSAS</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
